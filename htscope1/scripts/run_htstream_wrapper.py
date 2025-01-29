@@ -3,26 +3,7 @@
 import epics
 import socket
 import time
-
-import subprocess
-import shlex
-
 import os
-
-def run_process_with_live_output(command):
-    process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-
-    # universal_newlines=True, bufsize=1)
-
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            print(output.strip())
-
-    return process.poll()
-
 
 # get HOST:USER for local ioc
 
@@ -45,19 +26,20 @@ STATUS = epics.get_pv(f'{PFX}STATUS')
 print(f'RUNSTOP: {RUNSTOP.get()} UUTS: {UUTS.get()} SHOT_TIME: {SHOT_TIME.get()}')
 
 loopcount = 0
+shot = 0
 
 while True:
     if run_request == 1:
-        print('run_request')
+        shot += 1;
+        STATUS.put(f'run_request shot {shot}')
+        print(f'run_request shot {shot}')
         uuts = ' '.join(UUTS.get().split(','))
         secs = int(SHOT_TIME.get())
-#        job = f'unbuffer ./scripts/ht_stream.py --concat=999999 --secs={secs} {uuts}'
         job = f'./scripts/ht_stream.py --concat=999999 --secs={secs} {uuts}'
-#        print(f'run job {job}')
-#        run_process_with_live_output(job)
         print(f'use os.system {job}')
-        os.system(job)
-        STATUS.put('all good')
+        rc = os.system(job)
+        STATUS.put(f'job complete status: {rc}')
+        print(f'job complete status: {rc}')
         RUNSTOP.put(0)
 
     time.sleep(0.1)
