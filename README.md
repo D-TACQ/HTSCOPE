@@ -31,7 +31,6 @@ To browse the data rapidly, we have two controls:
 ### Install packages
 
 * compiler 
-* apt-get install expect     # unbuffer .. used in scripting
 * apt-get install pyepics
 
 ### Build Detail

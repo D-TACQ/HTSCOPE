@@ -7,6 +7,8 @@ import time
 import subprocess
 import shlex
 
+import os
+
 def run_process_with_live_output(command):
     process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
@@ -49,9 +51,12 @@ while True:
         print('run_request')
         uuts = ' '.join(UUTS.get().split(','))
         secs = int(SHOT_TIME.get())
-        job = f'unbuffer ./scripts/ht_stream.py --concat=999999 --secs={secs} {uuts}'
-        print(f'run job {job}')
-        run_process_with_live_output(job)
+#        job = f'unbuffer ./scripts/ht_stream.py --concat=999999 --secs={secs} {uuts}'
+        job = f'./scripts/ht_stream.py --concat=999999 --secs={secs} {uuts}'
+#        print(f'run job {job}')
+#        run_process_with_live_output(job)
+        print(f'use os.system {job}')
+        os.system(job)
         STATUS.put('all good')
         RUNSTOP.put(0)
 
