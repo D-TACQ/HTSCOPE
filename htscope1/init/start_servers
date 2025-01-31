@@ -4,4 +4,4 @@
 procServ -L ioc.log -l 8842 -P 8841 ./scripts/run_ioc
 
 # run the htstream wrapper on control socket 8843
-# procServ -L htstream_wrapper.log -l 8844 -P 8843 ./scripts/run_htstream_wrapper
+procServ -L htstream_wrapper.log -l 8844 -P 8843 ./scripts/run_htstream_wrapper.py

@@ -1,6 +1,90 @@
+# <diamond> feedback http://www.aps.anl.gov/epics/tech-talk/2010/msg00131.php
+# FOO   : setpoint
+# FOO:r : readback
+# FOO:s : sync
+# FOO:w : write
+
+
 record(bo, "$(PFX)$(UUT):REFRESH") {
+	field(DTYP, "Soft Channel")
+	field(FLNK, "$(PFX)$(UUT):REFRESH:w PP")
+	field(ZNAM, "0")
+	field(ONAM, "1")
+}
+
+
+record(bo, "$(PFX)$(UUT):REFRESH:w") {
 	field(DTYP, "asynInt32")
 	field(OUT,  "@asyn($(PFX)$(UUT),0,$(TIMEOUT))REFRESH")
+	field(DISV, "1")
+	field(SDIS, "$(PFX)$(UUT):REFRESH:s")
+	field(ZNAM, "0")
+	field(ONAM, "1")
+
+}
+
+record(bi, "$(PFX)$(UUT):REFRESH:r") {
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PFX)$(UUT),0,$(TIMEOUT))REFRESHr")
+	field(SCAN, "I/O Intr")
+	field(FLNK, "$(PFX)$(UUT):REFRESH:s")
+	field(ZNAM, "0")
+	field(ONAM, "1")
+}
+
+record(bo, "$(PFX)$(UUT):REFRESH:s") {
+	field(DTYP, "Soft Channel")
+	field(OMSL, "closed_loop")
+	field(DOL,  "$(PFX)$(UUT):REFRESH:r NPP")
+	field(OUT,  "$(PFX)$(UUT):REFRESH PP")
+	field(ZNAM, "0")
+	field(ONAM, "1")
+}
+
+
+record(bo, "$(PFX)$(UUT):MMAPUNMAP") {
+	field(DTYP, "Soft Channel")
+	field(OUT,  "$(PFX)$(UUT):MMAPUNMAP:w PP")
+	field(ZNAM, "UNMAP")
+	field(ONAM, "MMAP")
+}
+
+record(bo, "$(PFX)$(UUT):act") {
+	field(DTYP, "Soft Channel")
+	field(OMSL, "closed_loop")
+	field(DOL,  "$(HOST)ONRUN:N NPP")
+	field(OUT,  "$(PFX)$(UUT):MMAPUNMAP PP")	
+}
+record(fanout, "$(HOST)ONRUN:N:f") {	
+	field($(RUNFAN), "$(PFX)$(UUT):act")
+
+}
+
+record(bo, "$(PFX)$(UUT):MMAPUNMAP:w") {
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PFX)$(UUT),0,$(TIMEOUT))MMAPUNMAP")
+	field(DISV, "1")
+	field(SDIS, "$(PFX)$(UUT):MAPUNMAP:s")
+	field(ZNAM, "UNMAP")
+	field(ONAM, "MMAP")
+}
+
+record(bi, "$(PFX)$(UUT):MMAPUNMAP:r") {
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PFX)$(UUT),0,$(TIMEOUT))MMAPUNMAPr")
+	field(SCAN, "I/O Intr")
+	field(FLNK, "$(PFX)$(UUT):MMAPUNMAP:s")
+	field(ZNAM, "UNMAP")
+	field(ONAM, "MMAP")
+}
+
+record(bo, "$(PFX)$(UUT):MMAPUNMAP:s") {
+	field(DTYP, "Soft Channel")
+	field(OMSL, "closed_loop")
+	field(DOL,  "$(PFX)$(UUT):MMAPUNMAP:r NPP")
+	field(OUT,  "$(PFX)$(UUT):MMAPUNMAP PP")
+	field(ZNAM, "0")
+	field(ONAM, "1")
 }
 
 record(longin, "$(PFX)$(UUT):NCHAN"){

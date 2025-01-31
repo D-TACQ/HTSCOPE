@@ -1,7 +1,7 @@
 # common records for htscope.
-# nb: $PFX macro INCLUDES ':'
+# nb: $HOST macro INCLUDES ':'
 
-record(ao, "$(PFX)SHOT_TIME") {
+record(ao, "$(HOST)SHOT_TIME") {
 	field(DTYP, "Soft Channel")
 	field(DRVL, "1")
 	field(DRVH, "20")
@@ -11,23 +11,34 @@ record(ao, "$(PFX)SHOT_TIME") {
 	field(DESC, "specify shot duration")
 }
 
-record(stringout, "$(PFX)UUTS"){
+record(stringout, "$(HOST)UUTS"){
 	field(DTYP, "Soft Channel")
 	field(VAL,  "$(UUTS)")
 	field(PINI, "YES")
 	field(DESC, "list of UUTs in shot")
 }
 
-record(bo, "$(PFX)RUNSTOP") {
+record(bo, "$(HOST)RUNSTOP") {
 	field(DTYP, "Soft Channel")
 	field(ZNAM, "STOP")
 	field(ONAM, "RUN")
 	field(PINI, "YES")
         field(VAL, "0")
 	field(DESC, "Start/Stop the shot")
+	field(FLNK, "$(HOST)ONRUN:N")
 }
 
-record(stringin, "$(PFX)STATUS") {
+record(calc, "$(HOST)ONRUN:N") {
+	 field(INPA, "$(HOST)RUNSTOP")
+	 field(CALC, "!A")
+	 field(FLNK, "$(HOST)ONRUN:N:f")
+}
+
+record(fanout, "$(HOST)ONRUN:N:f") {	
+
+}
+
+record(stringin, "$(HOST)STATUS") {
 	field(DTYP, "Soft Channel")
 	field(PINI, "YES")
 	field(VAL,  "init")

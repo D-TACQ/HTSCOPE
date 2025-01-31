@@ -20,9 +20,26 @@ htscope1_registerRecordDeviceDriver(pdbbase)
 #asynSetTraceMask("", 0, 17)
 """)
 
+def _hands_out_outlinks():
+#    the_links = ( 'OUTA', 'OUTB', 'OUTC', 'OUTD', 'OUTE', 'OUTF', 'OUTG', 'OUTH' )
+    the_links = ( 'LNK0', 'LNK1', 'LNK2', 'LNK3', 'LNK4', 'LNK5', 'LNK6', 'LNK7', 
+                  'LNK8', 'LNK9', 'LNKA', 'LNKB', 'LNKC', 'LNKD', 'LNKE', 'LNKF'  )
+    cursor = 0
+    def _func():
+        nonlocal cursor
+        try:
+            link = the_links[cursor]
+            cursor += 1
+            return link
+        except IndexError as e:
+            print(f'ERROR: we have maximum 8 links in dfanout eg 4UUTS * 2USERS. For large system, we need a pyramid')
+            raise e
+    return _func
 
+next_link = _hands_out_outlinks()
 
 def print_uut(uut, args):
+    print(f'print_uut {uut}')
     wsize=4 if args.data32 == 1 else 2
     args.fp.write(f"\n# uut {uut}\n")
     args.fp.write(f"""
@@ -31,13 +48,13 @@ multiChannelScopeConfigure("{args.prefix}{uut}", {args.nchan}, {args.ndata}, {ws
     tm = "TIMEOUT=0"
     uutdb="./db/htscope1.db"
     args.fp.write(f"""
-dbLoadRecords("{uutdb}","PFX={args.prefix},UUT={uut},{tm}")
+dbLoadRecords("{uutdb}","HOST={args.host_ioc},PFX={args.prefix},UUT={uut},{tm},RUNFAN={next_link()}")
 """)
     chdb = "./db/htscope1_ch.db"
     for ix in range(args.nchan):
         ch = f"{ix+1:02}"
         args.fp.write(f"""
-dbLoadRecords("{chdb}","PFX={args.prefix},UUT={uut},CH={ch},IX={ix},{tm},NPOINTS={args.ndata}")""")
+dbLoadRecords("{chdb}","HOST={args.host_ioc},PFX={args.prefix},UUT={uut},CH={ch},IX={ix},{tm},NPOINTS={args.ndata}")""")
     args.fp.write(f"""
 asynSetTraceMask("{args.prefix}{uut}",0,0xff))
     """)
@@ -47,7 +64,7 @@ def print_postamble(args):
     maindb = "./db/htscope1_main.db"
     uuts= ','.join(args.uuts)
     args.fp.write(f"""
-dbLoadRecords("{maindb}","PFX={args.host_ioc},UUTS=\'{uuts}\'")
+dbLoadRecords("{maindb}","HOST={args.host_ioc},UUTS=\'{uuts}\'")
 """)
     args.fp.write("iocInit()\n")
     args.fp.write("dbl > records.dbl\n")

@@ -43,13 +43,16 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 							 0),
 							 nchan(numChannels), nsam(maxPoints), data_size(_data_size),
 							 ssb(numChannels*data_size),
-							 stride(1), startoff(0)
+							 stride(1), startoff(0), RAW(0), fp(0)
 {
 	createParam(PS_NCHAN,               asynParamInt32,         	&P_NCHAN);
 	createParam(PS_NSAM,                asynParamInt32,         	&P_NSAM);
 	createParam(PS_CHANNEL,             asynParamFloat64Array,      &P_CHANNEL);
 	createParam(PS_TB,                  asynParamFloat64Array,      &P_TB);
 	createParam(PS_REFRESH,				asynParamInt32,             &P_REFRESH);
+	createParam(PS_REFRESHr,			asynParamInt32,             &P_REFRESHr);
+	createParam(PS_MMAPUNMAP,			asynParamInt32,             &P_MMAPUNMAP);
+	createParam(PS_MMAPUNMAPr,			asynParamInt32,             &P_MMAPUNMAPr);
 	createParam(PS_FS,                  asynParamFloat64,           &P_FS);
 	createParam(PS_STRIDE,              asynParamInt32,             &P_STRIDE);
 	createParam(PS_DELAY,              	asynParamFloat64,           &P_DELAY);
@@ -67,28 +70,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 
 	printf("P_NCHAN:%d P_NSAM:%d P_CHANNEL:%d P_REFRESH:%d\n", P_NCHAN, P_NSAM, P_CHANNEL, P_REFRESH);
 
-	char datafile[128];
-	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
 
-	fp = fopen(datafile, "r");
-	if (fp == 0){
-		perror(datafile);
-		exit(errno);
-	}
-	data_len = GetFileSize(datafile);
-	printf("file: %s data_len %lu\n", datafile, data_len);
-
-
-	data_len -= data_len%(ssb);
-
-	data_len_words   = data_len/data_size;
-	data_len_samples = data_len/ssb;
-
-	printf("data_len: %ld words: %ld samples %ld\n", data_len, data_len_words, data_len_samples);
-
-	RAW = (epicsInt16*)mmap(0, data_len, PROT_READ, MAP_SHARED, fileno(fp), 0);
-
-	printf("RAW:%p\n", RAW);
 
 
 
@@ -107,8 +89,10 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 
 
 MultiChannelScope::~MultiChannelScope() {
-	munmap(RAW, data_len);
-	fclose(fp);
+	if (mmap_active){
+		mmap_active = 0;
+		unmap_uut_data();
+	}
 }
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
@@ -121,6 +105,8 @@ void runTask(void *drvPvt)
 
 void MultiChannelScope::task(void)
 {
+	asynStatus status = asynSuccess;
+
 	lock();
 	init_data();
 
@@ -128,10 +114,24 @@ void MultiChannelScope::task(void)
 		unlock();
 		epicsThreadSleep(1);
 		lock();
-		if (refresh){
+		if (mmap_active && refresh){
 			get_tb();
 			get_data();
-			refresh = 0;
+			status = setIntegerParam(P_REFRESHr, refresh = 0);
+			printf("%s %s rc %d\n", __FUNCTION__, "setIntegerParam", status);
+#if 0
+			if (status)
+				epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
+				              "%s:%s: status=%d, function=%d, name=%s, value=%d",
+				               driverName, functionName, status, function, paramName, value);
+			else
+				asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+				              "%s:%s: function=%d, name=%s, value=%d\n",
+				              driverName, functionName, function, paramName, value);
+#endif
+			status = callParamCallbacks();
+			printf("%s %s rc %d\n", __FUNCTION__, "callParamCallbacks", status);
+			printf("%s cleared refresh, callParamCallbacks() done\n", __FUNCTION__);
 		}
 	}
 }
@@ -150,6 +150,43 @@ void MultiChannelScope::init_data() {
 		TB[isam] = isam;
 	}
 	doCallbacksFloat64Array(TB, nsam, P_TB, 0);
+}
+
+bool MultiChannelScope::mmap_uut_data() {
+	char datafile[128];
+	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
+
+	fp = fopen(datafile, "r");
+	if (fp == 0){
+		perror(datafile);
+		return false;
+	}
+	data_len = GetFileSize(datafile);
+	printf("file: %s data_len %lu\n", datafile, data_len);
+
+
+	data_len -= data_len%(ssb);
+
+	data_len_words   = data_len/data_size;
+	data_len_samples = data_len/ssb;
+
+	printf("data_len: %ld words: %ld samples %ld\n", data_len, data_len_words, data_len_samples);
+
+	RAW = (epicsInt16*)mmap(0, data_len, PROT_READ, MAP_SHARED, fileno(fp), 0);
+
+	printf("RAW:%p\n", RAW);
+	return true;
+}
+
+void MultiChannelScope::unmap_uut_data() {
+	if (RAW){
+		munmap(RAW, data_len);
+		RAW = 0;
+	}
+	if (fp){
+		fclose(fp);
+		fp = 0;
+	}
 }
 void MultiChannelScope::get_data() {
 	double delay = 0;
@@ -252,8 +289,23 @@ asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
     	FILE* fp = fopen("params.txt", "w");
     	reportParams(fp, 3);
     	fclose(fp);
+    	status = (asynStatus) setIntegerParam(addr, P_REFRESHr, 0);
+    	printf("%s %s rc %d\n", __FUNCTION__, "setIntegerParam", status);
+    	status = callParamCallbacks();
+    	printf("%s %s rc %d\n", __FUNCTION__, "callParamCallbacks", status);
     }else if (function == P_STRIDE){
     	stride = value;
+    }else if (function == P_MMAPUNMAP){
+    	if (value == 1){
+    		mmap_active = mmap_uut_data();
+    	}else{
+    		if (mmap_active){
+    			mmap_active = 0;
+    			unmap_uut_data();
+    		}
+    	}
+    	status = (asynStatus) setIntegerParam(addr, P_MMAPUNMAPr, value);
+    	if (status != 0) printf("ERROR %s setIntegerParam %d, %d, %d fail\n", __FUNCTION__,  addr, P_MMAPUNMAPr, value);
     }
 
     /* Do callbacks so higher layers see any changes */

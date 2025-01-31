@@ -314,7 +314,7 @@ def run_main(args):
 def background_task(func):
     """Runs decorated function in the background returns thread"""
     def wrapper(*args, **kwargs):
-        print(f'starting wrapper {args} {kwargs}')
+#        print(f'starting wrapper {args} {kwargs}')
         thread = threading.Thread(target=func, args=[*args], kwargs=kwargs)
         thread.daemon = True
         thread.start()

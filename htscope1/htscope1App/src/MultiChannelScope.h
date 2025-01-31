@@ -15,6 +15,9 @@
 #define PS_CHANNEL		"CHANNEL"			/* ,       r/o */
 #define PS_TB			"TIMEBASE"			/*,        r/o */
 #define PS_REFRESH		"REFRESH"			/* asynInt32, 		r/w */
+#define PS_REFRESHr		"REFRESHr"			/* asynInt32,       r   */
+#define PS_MMAPUNMAP	"MMAPUNMAP"			/* asynInt32,       r/w */
+#define PS_MMAPUNMAPr	"MMAPUNMAPr"		/* asynInt32,       r */
 #define PS_FS           "FS"                /* asynFloat64,     r/w */
 #define PS_STRIDE		"STRIDE"			/* asynInt32,       r/w */
 #define PS_DELAY		"DELAY"				/* asynFloat64,     r/w */
@@ -46,6 +49,9 @@ private:
 	int P_CHANNEL;
 	int P_TB;
 	int P_REFRESH;
+	int P_REFRESHr;
+	int P_MMAPUNMAP;
+	int P_MMAPUNMAPr;
 	int P_FS;
 	int P_STRIDE;
 	int P_DELAY;
@@ -62,10 +68,13 @@ private:
     unsigned stride;
     unsigned long startoff;
     bool refresh;
+    bool mmap_active;
 
     void get_tb();
     void get_data();
     void init_data();
+    bool mmap_uut_data();   // return True on success
+    void unmap_uut_data();
 };
 
 #endif /* HTSCOPE1_HTSCOPE1APP_SRC_MULTICHANNELSCOPE_H_ */
