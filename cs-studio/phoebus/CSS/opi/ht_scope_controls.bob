@@ -1,30 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Saved on 2025-02-03 17:41:29 by dt100-->
+<!--Saved on 2025-02-04 14:20:16 by dt100-->
 <display version="2.0.0">
   <name>HT_Scope_Launcher</name>
   <width>778</width>
   <height>455</height>
-  <widget type="action_button" version="3.0.0">
-    <name>Action Button</name>
-    <actions>
-      <action type="open_display">
-        <description>Open Display</description>
-        <file>ht_stream_plot.bob</file>
-        <macros>
-          <test1>dsadadsd</test1>
-        </macros>
-        <target>window</target>
-      </action>
-    </actions>
-    <text>Open Plot</text>
-    <x>590</x>
-    <y>18</y>
-    <width>90</width>
-    <height>49</height>
-    <tooltip>$(actions)</tooltip>
-  </widget>
   <widget type="group" version="3.0.0">
-    <name>Group_1</name>
+    <name>Brand</name>
     <x>20</x>
     <y>9</y>
     <width>137</width>
@@ -58,107 +39,187 @@
     </widget>
   </widget>
   <widget type="group" version="3.0.0">
-    <name>Group</name>
-    <x>461</x>
-    <y>18</y>
-    <width>108</width>
-    <height>45</height>
-    <style>3</style>
+    <name>Host</name>
+    <x>521</x>
+    <width>134</width>
+    <height>152</height>
     <transparent>true</transparent>
-    <widget type="label" version="2.0.0">
-      <name>Label_8</name>
-      <text>User: ${USER}</text>
+    <widget type="action_button" version="3.0.0">
+      <name>Action Button</name>
+      <actions>
+        <action type="open_display">
+          <description>Open Display</description>
+          <file>ht_stream_plot.bob</file>
+          <target>window</target>
+        </action>
+      </actions>
+      <text>Open Plot</text>
+      <y>58</y>
+      <height>58</height>
+      <tooltip>$(actions)</tooltip>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>Label_9</name>
-      <text>Host: ${HOST}</text>
-      <y>25</y>
+      <name>Label_11</name>
+      <text>$(USER)@$(HOST)</text>
+      <y>20</y>
     </widget>
   </widget>
   <widget type="group" version="3.0.0">
     <name>UUT 1</name>
     <macros>
-      <UUT>UUT_1</UUT>
+      <UUT>$(UUT_1)</UUT>
     </macros>
     <x>157</x>
-    <width>156</width>
+    <width>182</width>
     <height>76</height>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
-      <name>Text Update_9</name>
-      <pv_name>${${UUT}}:MODE:CONTINUOUS:STATE</pv_name>
+      <name>uut_state_1</name>
+      <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
       <y>20</y>
-      <width>110</width>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <scripts>
+        <script file="../scripts/handle_cstate.py">
+          <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
+        </script>
+      </scripts>
+      <border_width>1</border_width>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>Label_4</name>
-      <text>${${UUT}}</text>
+      <name>uut_id_1</name>
+      <text>$(UUT)</text>
       <width>120</width>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>uut_state_1</name>
+      <pv_name>$(HOST):$(USER):$(UUT):MMAPUNMAP</pv_name>
+      <x>72</x>
+      <y>20</y>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <border_width>1</border_width>
     </widget>
   </widget>
   <widget type="group" version="3.0.0">
     <name>UUT 2</name>
     <macros>
-      <UUT>UUT_2</UUT>
+      <UUT>$(UUT_2)</UUT>
     </macros>
     <x>157</x>
     <y>76</y>
-    <width>156</width>
+    <width>182</width>
     <height>76</height>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
-      <name>Text Update_10</name>
-      <pv_name>${${UUT}}:MODE:CONTINUOUS:STATE</pv_name>
+      <name>uut_state_2</name>
+      <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
       <y>20</y>
-      <width>110</width>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <scripts>
+        <script file="../scripts/handle_cstate.py">
+          <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
+        </script>
+      </scripts>
+      <border_width>1</border_width>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>Label_5</name>
-      <text>${${UUT}}</text>
+      <name>uut_id_2</name>
+      <text>$(UUT)</text>
       <width>120</width>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>uut_state_2</name>
+      <pv_name>$(HOST):$(USER):$(UUT):MMAPUNMAP</pv_name>
+      <x>72</x>
+      <y>20</y>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <border_width>1</border_width>
     </widget>
   </widget>
   <widget type="group" version="3.0.0">
     <name>UUT 3</name>
     <macros>
-      <UUT>UUT_3</UUT>
+      <UUT>$(UUT_3)</UUT>
     </macros>
-    <x>305</x>
-    <width>156</width>
+    <x>339</x>
+    <width>182</width>
     <height>76</height>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
-      <name>Text Update_11</name>
-      <pv_name>${${UUT}}:MODE:CONTINUOUS:STATE</pv_name>
+      <name>uut_state_3</name>
+      <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
       <y>20</y>
-      <width>110</width>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <scripts>
+        <script file="../scripts/handle_cstate.py">
+          <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
+        </script>
+      </scripts>
+      <border_width>1</border_width>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>Label_6</name>
-      <text>${${UUT}}</text>
+      <name>uut_id_3</name>
+      <text>$(UUT)</text>
       <width>120</width>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>uut_state_3</name>
+      <pv_name>$(HOST):$(USER):$(UUT):MMAPUNMAP</pv_name>
+      <x>72</x>
+      <y>20</y>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <border_width>1</border_width>
     </widget>
   </widget>
   <widget type="group" version="3.0.0">
     <name>UUT 4</name>
     <macros>
-      <UUT>UUT_4</UUT>
+      <UUT>$(UUT_4)</UUT>
     </macros>
-    <x>305</x>
+    <x>339</x>
     <y>76</y>
-    <width>156</width>
+    <width>182</width>
     <height>76</height>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
-      <name>Text Update_12</name>
-      <pv_name>${${UUT}}:MODE:CONTINUOUS:STATE</pv_name>
+      <name>uut_state_5</name>
+      <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
       <y>20</y>
-      <width>110</width>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <scripts>
+        <script file="../scripts/handle_cstate.py">
+          <pv_name>$(UUT):MODE:CONTINUOUS:STATE</pv_name>
+        </script>
+      </scripts>
+      <border_width>1</border_width>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>Label_7</name>
-      <text>${${UUT}}</text>
+      <name>uut_id_4</name>
+      <text>$(UUT)</text>
       <width>120</width>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>uut_state_6</name>
+      <pv_name>$(HOST):$(USER):$(UUT):MMAPUNMAP</pv_name>
+      <x>72</x>
+      <y>20</y>
+      <width>72</width>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <border_width>1</border_width>
     </widget>
   </widget>
   <widget type="group" version="3.0.0">
@@ -1153,23 +1214,6 @@
       </widget>
     </widget>
   </widget>
-  <widget type="action_button" version="3.0.0">
-    <name>REFRESH Button</name>
-    <actions execute_as_one="true">
-      <action type="write_pv">
-        <description>REFRESH</description>
-        <pv_name>$(HOST):$(USER):$(UUT_1):REFRESH</pv_name>
-        <value>0</value>
-      </action>
-    </actions>
-    <text>REFRESH</text>
-    <x>477</x>
-    <y>114</y>
-    <width>110</width>
-    <height>28</height>
-    <tooltip>$(actions)</tooltip>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
-  </widget>
   <widget type="group" version="3.0.0">
     <name>Stream</name>
     <x>339</x>
@@ -1196,7 +1240,7 @@
       <name>SHOT_TIME</name>
       <pv_name>$(HOST):SHOT_TIME</pv_name>
       <x>120</x>
-      <width>90</width>
+      <width>73</width>
       <height>30</height>
       <precision>0</precision>
       <show_units>true</show_units>
@@ -1216,17 +1260,18 @@
       <height>60</height>
     </widget>
     <widget type="action_button" version="3.0.0">
-      <name>MMAP button</name>
+      <name>REFRESH Button</name>
       <actions execute_as_one="true">
         <action type="write_pv">
-          <description>RUNSTOP</description>
-          <pv_name>$(HOST):$(USER):$(UUT_1):MMAPUNMAP</pv_name>
+          <description>REFRESH</description>
+          <pv_name>$(HOST):$(USER):$(UUT_1):REFRESH</pv_name>
           <value>0</value>
         </action>
       </actions>
-      <text>MMAP</text>
-      <x>220</x>
-      <width>60</width>
+      <text>REFRESH</text>
+      <x>203</x>
+      <width>76</width>
+      <height>28</height>
       <tooltip>$(actions)</tooltip>
       <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
