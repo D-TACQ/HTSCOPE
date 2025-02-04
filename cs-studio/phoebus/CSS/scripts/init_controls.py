@@ -15,7 +15,6 @@ def get_macros(widget):
 	macros = widget.getPropertyValue("macros")
 	extracted = {}
 	for key in macros.getNames():
-		print(key)
 		extracted[key] = macros.getValue(key)
 	return extracted
 
