@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Saved on 2025-05-23 16:50:03 by dt100-->
+<!--Saved on 2025-06-30 16:24:23 by dt100-->
 <display version="2.0.0">
   <name>uut_status.bob</name>
   <width>182</width>
@@ -16,6 +16,18 @@
         <pv_name>$(HOST):UUT2</pv_name>
         <pv_name>$(HOST):UUT3</pv_name>
         <pv_name>$(HOST):UUT4</pv_name>
+      </script>
+      <script file="EmbeddedPy">
+        <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
+
+master_val = PVUtil.getInt(pvs[0])
+slave_val = PVUtil.getInt(pvs[1])
+
+if master_val != slave_val:
+    pvs[1].write(master_val)
+]]></text>
+        <pv_name>$(HOST):$(USER):$(UUT_1):SHOW_EGU</pv_name>
+        <pv_name trigger="false">$(HOST):$(USER):$(UUT):SHOW_EGU</pv_name>
       </script>
     </scripts>
     <widget type="textupdate" version="2.0.0">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Saved on 2025-05-23 16:50:10 by dt100-->
+<!--Saved on 2025-06-30 16:16:52 by dt100-->
 <display version="2.0.0">
   <name>ht_scope_controls</name>
   <width>895</width>
@@ -928,19 +928,6 @@
         </color>
       </on_color>
       <labels_from_pv>true</labels_from_pv>
-      <scripts>
-        <script file="EmbeddedPy">
-          <text><![CDATA[from org.csstudio.display.builder.runtime.script import PVUtil
-value = PVUtil.getInt(pvs[0])
-pvs[1].write(value)
-pvs[2].write(value)
-pvs[3].write(value)]]></text>
-          <pv_name>$(HOST):$(USER):$(UUT_1):SHOW_EGU</pv_name>
-          <pv_name trigger="false">$(HOST):$(USER):$(UUT_2):SHOW_EGU</pv_name>
-          <pv_name trigger="false">$(HOST):$(USER):$(UUT_3):SHOW_EGU</pv_name>
-          <pv_name trigger="false">$(HOST):$(USER):$(UUT_4):SHOW_EGU</pv_name>
-        </script>
-      </scripts>
     </widget>
     <widget type="group" version="3.0.0">
       <name>Controls Input</name>
@@ -1115,6 +1102,7 @@ pvs[3].write(value)]]></text>
       <pv_name>$(HOST):$(USER):REFRESH</pv_name>
       <x>370</x>
       <y>4</y>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
     <widget type="bool_button" version="2.0.0">
       <name>RESIZE Button</name>

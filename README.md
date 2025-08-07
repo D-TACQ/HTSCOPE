@@ -55,7 +55,7 @@ Ref: [BUILD_EPICS_FROM_SCRATCH.md](./BUILD_EPICS_FROM_SCRATCH.md)
 ```
 mkdir PROJECTS; cd PROJECTS
 git clone https://github.com/D-TACQ/HTSCOPE
-cd HTSCOPE; source /usr/local/epcis/base/setup.env; make
+cd HTSCOPE; source /usr/local/epics/base/setup.env; make
 ```
 
 3. Make Data Sources
