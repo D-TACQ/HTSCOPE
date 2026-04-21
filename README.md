@@ -24,8 +24,8 @@ To browse the data rapidly, we have two controls:
 2. PAN  : increment/decrement DELAY
  - Moves start of data SPAN/2 to the right.
 
-[Example Reference/FAT] (/releases/download/v0.1.0.0/HTSCOPE-DOC-248340-02-FAT.pdf)
-
+Example Architecture and FAT instruction:
+https://github.com/D-TACQ/HTSCOPE/releases/download/v0.1.0.0/HTSCOPE-DOC-248340-02-FAT.pdf
 
 
 
