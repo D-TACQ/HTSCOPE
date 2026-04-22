@@ -4,7 +4,7 @@ The plan is to have an local IOC that maps the data to WF records, and to displa
 cs-studio (phoebus and classic)
 
 Data set size:
-16ch x 2b x 2M x 10s = 6.4GB,  maybe 4 devices so 24GB.
+32ch x 2b x 2M x 10s = 1280GB,  with 4 devices so 6GB.
 
 We know from experience that cs-studio can display 100k points.
 Let's assume that each WF record will span 100k points.
@@ -25,6 +25,7 @@ To browse the data rapidly, we have two controls:
  - Moves start of data SPAN/2 to the right.
 
 Example Architecture and FAT instruction:
+
 https://github.com/D-TACQ/HTSCOPE/releases/download/v0.1.0.0/HTSCOPE-DOC-248340-02-FAT.pdf
 
 
