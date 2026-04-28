@@ -1,0 +1,4 @@
+#!/bin/bash
+source ../../ACQ400_ESW_TOP/EPICS7/base/setup.env
+make $*
+

@@ -1,2 +1,10 @@
 include "xxxRecord.dbd"
 device(xxx,CONSTANT,devXxxSoft,"Soft Channel")
+# added by pgm at step 2
+include "stream.dbd"
+include "asyn.dbd"
+registrar(drvAsynIPPortRegisterCommands)
+registrar(drvAsynSerialPortRegisterCommands)
+#registrar(vxi11RegisterCommands)
+#registrar(multiChannelScopeRegister)
+

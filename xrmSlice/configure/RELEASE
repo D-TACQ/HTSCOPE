@@ -28,7 +28,16 @@
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ = $(MODULES)/seq-ver
 
+# pgmwashere:
+TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
+MODULES=$(EPICS_BASE)/../modules
+SNCSEQ=$(EPICS_BASE)/../modules/seq
+ASYN=$(EPICS_BASE)/../modules/asyn/
+STREAM=$(EPICS_BASE)/../modules/StreamDevice/
+
 # EPICS_BASE should appear last so earlier modules can override stuff:
+# pgm comment out next line .. provided as environment
+#EPICS_BASE = /usr/local/epics/base/
 EPICS_BASE = /home/pgm/PROJECTS/ACQ400_ESW_TOP/EPICS7/acq400_epics_base
 
 # Set RULES here if you want to use build rules from somewhere

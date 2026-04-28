@@ -52,11 +52,16 @@ xrmSlice_DBD += initTrace.dbd
 
 # xrmSlice_registerRecordDeviceDriver.cpp derives from xrmSlice.dbd
 xrmSlice_SRCS += xrmSlice_registerRecordDeviceDriver.cpp
+xrmSlice_SRCS += xrm_struct_support.cpp
+xrmSlice_SRCS += SamplePrams.cpp
+xrmSlice_SRCS += acq400_asynPortDriver.cpp
 
 # Build the main IOC entry point where needed
 xrmSlice_SRCS_DEFAULT += xrmSliceMain.cpp
 xrmSlice_SRCS_vxWorks += -nil-
 
+xrmSlice_LIBS += stream
+xrmSlice_LIBS += asyn
 # Link in the code from our support library
 xrmSlice_LIBS += xrmSliceSupport
 
@@ -80,13 +85,28 @@ ifneq ($(SNCSEQ),)
     sncProgram_LIBS += $(EPICS_BASE_HOST_LIBS)
 endif
 
+# XRM D-TACQ mandated
+xrmSlice_DBD += asyn.dbd
+xrmSlice_DBD += drvAsynIPPort.dbd
+xrmSlice_DBD += stream.dbd
+
+# XRM customer mandated features
+
+xrmSlice_DBD += reccaster.dbd
+xrmSlice_DBD += softIocPVX.dbd
+xrmSlice_DBD += pvxsIoc.dbd
+
+xrmSlice_LIBS += pvxs
+xrmSlice_LIBS += pvxsIoc
+xrmSlice_LIBS += reccaster
+
 # Link QSRV (pvAccess Server) if available
-ifdef EPICS_QSRV_MAJOR_VERSION
-    xrmSlice_LIBS += qsrv
-    xrmSlice_LIBS += $(EPICS_BASE_PVA_CORE_LIBS)
-    xrmSlice_DBD += PVAServerRegister.dbd
-    xrmSlice_DBD += qsrv.dbd
-endif
+#ifdef EPICS_QSRV_MAJOR_VERSION
+#    xrmSlice_LIBS += qsrv
+#    xrmSlice_LIBS += $(EPICS_BASE_PVA_CORE_LIBS)
+#    xrmSlice_DBD += PVAServerRegister.dbd
+#    xrmSlice_DBD += qsrv.dbd
+#endif
 
 # Finally link IOC to the EPICS Base libraries
 xrmSlice_LIBS += $(EPICS_BASE_IOC_LIBS)

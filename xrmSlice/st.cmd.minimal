@@ -1,0 +1,4 @@
+dbLoadDatabase("./dbd/xrmSlice.dbd")
+xrmSlice_registerRecordDeviceDriver(pdbbase)
+iocInit()
+
