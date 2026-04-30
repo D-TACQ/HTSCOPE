@@ -1,4 +1,6 @@
 dbLoadDatabase("./dbd/xrmSlice.dbd")
 xrmSlice_registerRecordDeviceDriver(pdbbase)
+dbLoadRecords("./db/xrmSlice.db","HOST=hoy6,USER=pgm,UUT=acq2206_588")
+#dbLoadRecords("./db/xrmSlice.db","HOST=hoy6,USER=pgm,UUT=acq2206_088")
 iocInit()
 
