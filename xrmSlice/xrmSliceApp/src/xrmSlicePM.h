@@ -18,7 +18,7 @@ class XrmSlicePM: public XrmSliceCommon {
 protected:
 
 public:
-	XrmSlicePM(const char *portName);
+	XrmSlicePM(const char *portName, int max_addr);
 	virtual ~XrmSlicePM() {}
 
 };
