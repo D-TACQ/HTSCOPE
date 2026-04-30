@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -e $1 ]; then
+        echo usage pvxget_value PV [PV2 ..]
+        exit 1
+fi
+
+for pv in $*; do
+        pvxget $pv | grep value\ 
+done

@@ -19,10 +19,10 @@ class XrmSliceHT: public XrmSliceCommon {
 protected:
 
 
-	XrmSliceHT(const char *portName);
+
 public:
+	XrmSliceHT(const char *portName);
 	virtual ~XrmSliceHT() {}
-	static XrmSliceHT* instance();
 };
 
 

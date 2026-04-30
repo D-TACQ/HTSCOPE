@@ -7,7 +7,7 @@
 
 #include "xrmSlicePM.h"
 
-static const char *driverName="acq400_PM";
+static const char *driverName= __FILE__;
 #define DN	driverName
 #define FN	__FUNCTION__
 
@@ -22,11 +22,11 @@ extern "C" {
 	/** EPICS iocsh callable function to call constructor for the testAsynPortDriver class.
 	  * \param[in] portName The name of the asyn port driver to be created.
 	  */
-	int xrmSlice_PM_Configure(const char *portName, int addr)
+	int xrmSlice_PM_Configure(const char *portName, int maxAddr)
 	{
 		printf("%s:%s R1001 %s\n", DN, FN, portName);
 
-		new XrmSlicePM(portName, addr);
+		new XrmSlicePM(portName, maxAddr);
 		return 0;
 	}
 
@@ -41,10 +41,10 @@ extern "C" {
 		xrmSlice_PM_Configure(args[0].sval, args[1].ival);
 	}
 
-	void acq400_PM_Register(void)
+	void xrmSlice_PM_Register(void)
 	{
 	    iocshRegister(&initFuncDef, initCallFunc);
 	}
 
-	epicsExportRegistrar(acq400_PM_Register);
+	epicsExportRegistrar(xrmSlice_PM_Register);
 }
