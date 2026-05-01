@@ -35,7 +35,7 @@ extern "C" {
 
 	static const iocshArg initArg0 = { "port", iocshArgString };
 	static const iocshArg * const initArgs[] = { &initArg0, };
-	static const iocshFuncDef initFuncDef = { "xrmSlice_PM_Configure", 1, initArgs };
+	static const iocshFuncDef initFuncDef = { "xrmSlice_HT_Configure", 1, initArgs };
 	static void initCallFunc(const iocshArgBuf *args)
 	{
 		xrmSlice_HT_Configure(args[0].sval);

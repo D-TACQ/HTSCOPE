@@ -62,21 +62,70 @@ def print_preamble(args):
 dbLoadDatabase("./dbd/xrmSlice.dbd")
 xrmSlice_registerRecordDeviceDriver(pdbbase)
 
-# Turn on asynTraceFlow and asynTraceError for global trace, i.e. no connected asynUser.
-#asynSetTraceMask("", 0, 17)
-drvAsynIPPortConfigure("XRM1", "10.12.197.110:44000")
-dbLoadRecords("db/asynRecord.db","P={args.host}:,R=asyn:XRM1,PORT=XRM1,ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
-epicsEnvSet("STREAM_PROTOCOL_PATH","./protocols")
-xrmSlice_PM_Configure("XRM1_PM", 20)
-xrmSlice_HT_Configure("XRM1_HT")
-dbLoadRecords("./db/xrmSlice.db","HOST={args.host},UUT=acq2206_588")
 """)
 
+def print_peer_pm(args, ii, peer, CHFMT):
+    for CYCLE in range(20):
+        SPORT =  SPORT = f'XRM{ii}PM{CYCLE:02d}'
+        args.fp.write(f"""
+xrmSlice_PM_Configure(f"{SPORT}", args.geometries[ii].AI_COUNT)""")
+
+        for ix in range(args.geometries[ii].AI_COUNT):
+            ch = CHFMT.format(ix+1)
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceAI_PM.db", "HOST={args.host},UUT={peer.name},PORT={SPORT},ADDR={ix},CH={ch}")""")
+
+        for ix in range(args.geometries[ii].DI_COUNT):
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceDI_PM.db", "HOST={args.host},UUT={peer.name},PORT={SPORT},ADDR={ix},CH={ix+1}")""")
+
+        args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_PM.db", "HOST={args.host},UUT={peer.name},PORT={SPORT}")""")
+
+
+            
+def print_peer_ht(args, ii, peer, CHFMT):
+    for HTROW in range(64):
+        SPORT =  SPORT = f'XRM{ii}HT{HTROW:02d}'
+        args.fp.write(f"""
+xrmSlice_PM_Configure(f"{SPORT}", args.geometries[ii].AI_COUNT)""")
+
+        for ix in range(args.geometries[ii].AI_COUNT):
+            ch = CHFMT.format(ix+1)
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceAI_HT.db", "HOST={args.host},UUT={peer.name},PORT={SPORT},ADDR={ix},CH={ch}")""")
+
+        for ix in range(args.geometries[ii].DI_COUNT):
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceDI_HT.db", "HOST={args.host},UUT={peer.name},PORT={SPORT},ADDR={ix},CH={ix+1}")""")
+
+        args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_HT.db", "HOST={args.host},UUT={peer.name},PORT={SPORT}")""")
+
+        
 def print_peer(args, ii, peer):
     print('@@todo print_peer')
     print(f'peer: {peer.name} {peer.ip}')
     print(f'smpl: {args.geometries[ii]}')
-            
+     
+    SPORT = f'XRM{ii}'
+    args.fp.write(f"""    
+# Turn on asynTraceFlow and asynTraceError for global trace, i.e. no connected asynUser.
+#asynSetTraceMask("", 0, 17)
+drvAsynIPPortConfigure(f"{SPORT}", f"{peer.ip}")
+dbLoadRecords("db/asynRecord.db", f"P={args.host}:,R={SPORT},PORT={SPORT},ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
+epicsEnvSet("STREAM_PROTOCOL_PATH","./protocols")
+dbLoadRecords("./db/xrmSlice.db", f"HOST={args.host},UUT={peer.name}")
+""")
+
+    if args.geometries[ii].AI_COUNT > 99:
+        CHFMT = '{:03d}'
+    else:
+        CHFMT = '{:02d}'
+        
+    print_peer_pm(args, ii, peer, CHFMT)
+    print_peer_ht(args, ii, peer, CHFMT)
+
 
 def print_postamble(args):
     args.fp.write("\n# postamble\n")
@@ -84,6 +133,9 @@ def print_postamble(args):
     args.fp.write("dbl > records.dbl\n")
     args.fp.write("# end\n")
     args.fp.close()
+
+def isValidGeometry(geometry):
+    return geometry.AI_COUNT > 0 or geometry.DI_COUNT > 0
 
 def init(args):
     args.peers = []
@@ -94,10 +146,15 @@ def init(args):
         except ValueError:
             name = uut
             ip = uut
-    args.peers.append(NameAndAddress(name, ip))
-    args.geometries.append(getSampleGeometry(args.peers[-1]))
-    
-#   print(f"Peer: {args.peers[-1]} geom:{args.geometries[-1]}")
+        name_and_address = NameAndAddress(name, ip)
+        geometry = getSampleGeometry(name_and_address)
+        
+        if isValidGeometry(geometry):
+            args.peers.append(name_and_address)
+            args.geometries.append(geometry)
+        else:
+            print(f"ERROR PEER {name_and_address.name} does NOT have valid geometry")
+
 
 
 def run_main(args):
