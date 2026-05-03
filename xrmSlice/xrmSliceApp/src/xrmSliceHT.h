@@ -14,11 +14,12 @@
 
 #include "xrmSliceCommon.h"
 
+#define PS_HT_RAW_INPUT	"HT_RAW_INPUT"   /** single port==0 single addr=0 */
+
 class XrmSliceHT: public XrmSliceCommon {
 
 protected:
-
-
+	int P_HT_RAW_INPUT;
 
 public:
 	XrmSliceHT(const char *portName);

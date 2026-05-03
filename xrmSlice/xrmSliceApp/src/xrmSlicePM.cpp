@@ -24,6 +24,8 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	createParam(PS_XS_SP32_WRVS, 	asynParamInt32Array, &P_XS_SP32_WRVS);
 	createParam(PS_XS_SP32_WRVT, 	asynParamInt32Array, &P_XS_SP32_WRVT);
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64Array, &P_XS_SP32_WRUS);
+
+	createParam(PS_PM_RAW_INPUT,	asynParamInt32Array,  &P_PM_RAW_INPUT);
 }
 
 

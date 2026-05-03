@@ -13,10 +13,12 @@
 
 #include "xrmSliceCommon.h"
 
+#define PS_PM_RAW_INPUT	"PM_RAW_INPUT"   /** one per port, single addr=0 */
+
 class XrmSlicePM: public XrmSliceCommon {
 
 protected:
-
+	int P_PM_RAW_INPUT;
 
 public:
 	XrmSlicePM(const char *portName, int max_addr);

@@ -27,6 +27,7 @@ XrmSliceHT::XrmSliceHT(const char *portName):
 	createParam(PS_XS_SP32_WRVT, 	asynParamInt32, &P_XS_SP32_WRVT);
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64, &P_XS_SP32_WRUS);
 
+	createParam(PS_HT_RAW_INPUT,	asynParamInt32Array,  &P_HT_RAW_INPUT);
 }
 
 extern "C" {
