@@ -19,13 +19,26 @@
 SamplePrams::SamplePrams()
 {
 	memset(this, 0, sizeof(SamplePrams));
-	MAGIC = SP_MAGIC;
+//	MAGIC = SP_MAGIC;
 }
 
 bool SamplePrams::isValid() const
 {
 	return MAGIC == SP_MAGIC;
 }
+
+bool SamplePrams::validate(SamplePrams& wr){
+	if (wr.SSB && wr.NSAM &&
+	    wr.AI_COUNT && wr.AI_INDEX &&
+	    wr.DI_COUNT && wr.DI_INDEX &&
+	    wr.SP_COUNT && wr.SP_INDEX){
+		MAGIC = SP_MAGIC;
+		return true;
+	}else{
+		return false;
+	}
+}
+
 int SamplePrams::store(const SamplePrams& samplePrams)
 {
 	FILE* fp = fopen(SAMPLE_PRAMS_FILE, "w");

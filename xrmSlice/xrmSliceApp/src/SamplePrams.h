@@ -20,6 +20,7 @@ struct SamplePrams {
 	int SP_INDEX;
 	SamplePrams();
 	bool isValid() const;
+	bool validate(SamplePrams& sample_prams_field_has_been_written);
 	static int store(const SamplePrams& samplePrams);
 	static int load(SamplePrams& samplePrams);
 };
