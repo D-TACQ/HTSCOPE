@@ -14,7 +14,16 @@ static const char *driverName= __FILE__;
 XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	XrmSliceCommon(portName, max_addr)
 {
-
+	createParam(PS_XS_AI16_CH_RAW,	asynParamInt16Array, &P_XS_AI16_CH_RAW);
+	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat32Array, &P_XS_AI16_CH_EGU);
+	createParam(PS_XS_DI32_CH_RAW,	asynParamInt32Array, &P_XS_DI32_CH_RAW);
+	createParam(PS_XS_SP32_SP0, 	asynParamInt32Array, &P_XS_SP32_SP0);
+	createParam(PS_XS_SP32_SP1, 	asynParamInt32Array, &P_XS_SP32_SP1);
+	createParam(PS_XS_SP32_SP2, 	asynParamInt32Array, &P_XS_SP32_SP2);
+	createParam(PS_XS_SP32_SP3, 	asynParamInt32Array, &P_XS_SP32_SP3);
+	createParam(PS_XS_SP32_WRVS, 	asynParamInt32Array, &P_XS_SP32_WRVS);
+	createParam(PS_XS_SP32_WRVT, 	asynParamInt32Array, &P_XS_SP32_WRVT);
+	createParam(PS_XS_SP32_WRUS, 	asynParamInt64Array, &P_XS_SP32_WRUS);
 }
 
 

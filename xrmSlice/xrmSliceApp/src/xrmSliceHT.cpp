@@ -16,6 +16,16 @@ const int SOE_HLD_ROWS = 64;
 XrmSliceHT::XrmSliceHT(const char *portName):
 	XrmSliceCommon(portName, SOE_HLD_ROWS)
 {
+	createParam(PS_XS_AI16_CH_RAW,	asynParamInt32, &P_XS_AI16_CH_RAW);
+	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat64, &P_XS_AI16_CH_EGU);
+	createParam(PS_XS_DI32_CH_RAW,	asynParamInt32, &P_XS_DI32_CH_RAW);
+	createParam(PS_XS_SP32_SP0, 	asynParamInt32, &P_XS_SP32_SP0);
+	createParam(PS_XS_SP32_SP1, 	asynParamInt32, &P_XS_SP32_SP1);
+	createParam(PS_XS_SP32_SP2, 	asynParamInt32, &P_XS_SP32_SP2);
+	createParam(PS_XS_SP32_SP3, 	asynParamInt32, &P_XS_SP32_SP3);
+	createParam(PS_XS_SP32_WRVS, 	asynParamInt32, &P_XS_SP32_WRVS);
+	createParam(PS_XS_SP32_WRVT, 	asynParamInt32, &P_XS_SP32_WRVT);
+	createParam(PS_XS_SP32_WRUS, 	asynParamInt64, &P_XS_SP32_WRUS);
 
 }
 
