@@ -11,6 +11,12 @@ RL_ACQ400=/tmp/records.dbl
 CP=2332                        # @@todo /etc/services
 XRM_EPICS_SH=/mnt/local/sysconfig/xrmSlice.sh
 
+cat - >/usr/local/bin/xrmSlice-epics-console  <<EOF
+#!/bin/sh
+nc localhost 2332
+EOF
+chmod a+rx /usr/local/bin/xrmSlice-epics-console
+
 
 if [ ! -e $XRM_EPICS_SH ]; then
 	echo xrmSlice: unable to continue without $XRM_EPICS_SH. GOODBYE!
@@ -67,7 +73,7 @@ make_stcmd() {
 	if [ ! -e ${STCMD} ]; then (
 		echo "++ create EPICS db ${STCMD}"
 		cd ${ETOP}
-		XRM_SLICE_UUTS $XRM_SLICE_UUTS
+		echo XRM_SLICE_UUTS $XRM_SLICE_UUTS
 		./scripts/make_xrmslice_st.cmd.py --output ${STCMD} $XRM_SLICE_UUTS
 	) fi
 }
@@ -90,7 +96,7 @@ bump()
 start_ioc() {
 	/usr/local/bin/procServ \
 		-c ${ETOP} -p $PIDF -L $LOG ${CP} \
-		/bin/nice -n $NICE ${ACQ400_XRM_IOC} ${STCMD}
+		/bin/nice -n $NICE ${XRMSLICE_IOC} ${STCMD}
 	while [ ! -r $PIDF ]; do
 		usleep 10000
 	done
