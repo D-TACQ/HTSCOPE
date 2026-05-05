@@ -40,16 +40,18 @@ def getSampleGeometry(peer):
         env=my_env, stdout=subprocess.PIPE, text=True)
         
     lines = process.communicate()[0].strip().split('\n')
+    if process.returncode != 0:
+        print(f"ERROR: pvxget_value failed {process.returncode}")
+        exit(1)
 
     fields = {}
     for line in lines:
         m = pvxget_value_pattern.match(line)
         if m:
             fields[m.group(1)] = int(m.group(2))
-#    print(fields)
     sg = SampleGeometry(**fields)
-#    print(f"output: {sg}")
-    return sg   
+    print(f"output: {sg}")
+    return sg
     
 def print_preamble(args):
     if args.output == '-':
@@ -112,10 +114,10 @@ def print_peer(args, ii, peer):
     args.fp.write(f"""    
 # Turn on asynTraceFlow and asynTraceError for global trace, i.e. no connected asynUser.
 #asynSetTraceMask("", 0, 17)
-drvAsynIPPortConfigure(f"{SPORT}", f"{peer.ip}")
-dbLoadRecords("db/asynRecord.db", f"P={args.host}:,R={SPORT},PORT={SPORT},ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
+drvAsynIPPortConfigure("{SPORT}", "{peer.ip}")
+dbLoadRecords("db/asynRecord.db", "P={args.host}:,R={SPORT},PORT={SPORT},ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
 epicsEnvSet("STREAM_PROTOCOL_PATH","./protocols")
-dbLoadRecords("./db/xrmSlice.db", f"HOST={args.host},UUT={peer.name}")
+dbLoadRecords("./db/xrmSlice.db", "HOST={args.host},UUT={peer.name}")
 """)
 
     if args.geometries[ii].AI_COUNT > 99:
