@@ -12,7 +12,8 @@ static const char *driverName= __FILE__;
 #define FN	__FUNCTION__
 
 XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
-	XrmSliceCommon(portName, max_addr)
+	XrmSliceCommon(portName, max_addr),
+	pm_buf(0), pm_buf_len(0)
 {
 	createParam(PS_XS_AI16_CH_RAW,	asynParamInt16Array, &P_XS_AI16_CH_RAW);
 	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat32Array, &P_XS_AI16_CH_EGU);
@@ -26,6 +27,45 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64Array, &P_XS_SP32_WRUS);
 
 	createParam(PS_PM_RAW_INPUT,	asynParamInt32Array,  &P_PM_RAW_INPUT);
+}
+
+
+asynStatus XrmSlicePM::writeInt32Array(asynUser *pasynUser,
+                                     epicsInt32 *value, size_t nElements)
+{
+    int function = pasynUser->reason;
+    asynStatus status = asynSuccess;
+    const char *paramName;
+    int addr = 0;
+
+    getParamName(function, &paramName);
+    if (maxAddr > 1){
+	    status = pasynManager->getAddr(pasynUser, &addr);
+	    if(status!=asynSuccess) return status;
+    }
+
+    // Log the action
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "writeInt32Array: Port %s, Param %s, nElements %u\n",
+              portName, paramName, nElements);
+
+    if (function == P_PM_RAW_INPUT) {
+	if (pm_buf == 0){
+		pm_buf = new epicsUInt32[pm_buf_len = nElements];
+	}
+	if (pm_buf_len == nElements){
+		memcpy(pm_buf, value, nElements*sizeof(epicsUInt32));
+		doCallbacksInt32Array(value, nElements, P_PM_RAW_INPUT, 0);
+	}else{
+		fprintf(stderr, "ERROR:%s nElements set %u previously %u\n",
+					nElements, pm_buf_len);
+	}
+    } else {
+        // Fall back to base class for standard parameters
+        status = asynPortDriver::writeInt32Array(pasynUser, value, nElements);
+    }
+
+    return status;
 }
 
 

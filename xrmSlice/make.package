@@ -1,0 +1,89 @@
+#!/bin/bash
+# xl- excluding libraries. Libs are assumed to be preloaded, eg with .ovl
+
+PACKAGE=xrmSlice
+DC="$(date +%y%m%d%H%M)"
+ISXL=1
+
+[ $ISXL -eq 1 ] && DC="xl_$(date +%y%m%d%H%M)"
+SEQ=90
+
+if [ "x$EPICS_BASE" = "x" ]; then
+	echo ERROR: please run epics setup.env
+	exit 1
+fi
+
+rm -Rf opkg/*
+mkdir -p release
+mkdir -p opkg/usr/local/bin/ opkg/usr/local/init/ \
+	opkg/etc/ \
+	opkg/usr/local/lib/ \
+	opkg/usr/local/slice/epics/dbd/ \
+	opkg/usr/local/slice/epics/db  \
+	opkg/usr/local/slice/epics/protocols \
+	opkg/usr/local/slice/epics/scripts \
+	opkg/usr/local/slice/epics/init.d \
+	opkg/usr/local/CARE
+
+cp -r CARE/* opkg/usr/local/CARE
+
+
+strip_all()
+{ (
+	cd $1
+	for file in $(find . -type f -print); do 
+		chmod u+w $file;
+		arm-linux-gnueabihf-strip -g -S -d --strip-debug $file 2>/dev/null; 
+		chmod u-w $file; 
+	done
+) }
+
+cp bin/linux-arm/* opkg/usr/local/bin
+#cp bin-scripts/* opkg/usr/local/bin
+cp init/* opkg/usr/local/init/
+cp -r etc/* opkg/etc
+rm -f opkg/usr/local/lib/*
+cp lib/linux-arm/*.so opkg/usr/local/lib
+strip_all opkg/usr/local/lib
+rm -f opkg/usr/local/slice/epics/dbd/xrmIoc.dbd
+cp README opkg/usr/local/slice/epics/
+cp dbd/xrmSlice.dbd opkg/usr/local/slice/epics/dbd
+cp db/* opkg/usr/local/slice/epics/db
+cp protocols/* opkg/usr/local/slice/epics/protocols
+cp scripts/* opkg/usr/local/slice/epics/scripts
+if [ $ISXL -eq 0 ]; then
+tar cf - --exclude=lib*.a --exclude=libtest* --exclude=libdevTestGpib.so -C ${EPICS_BASE}/lib/linux-arm/ . | tar xf - -C opkg/usr/local/lib
+fi
+#cp -a ../seq/lib/linux-arm/libpv.so ../seq/lib/linux-arm/libseq.so opkg/usr/local/lib
+
+
+DEFBR=epics7
+BR=$(git branch --show-current)
+if [ -z "$BR" ]; then
+	BR=epics7
+fi
+
+if [[ -n $(git status --porcelain) ]]; then
+	GS="dirty_"
+else
+	GS=""
+fi
+
+if [ "$BR" = "main" ]; then
+	echo building default branch epics7, nothing to say
+	BC=$GS
+else
+	echo building branch $BR
+	BC="${BR}_${GS}"
+fi
+RN=${SEQ}-${PACKAGE}-${BC}${DC}.tgz
+tar cvzf release/$RN -C opkg .
+echo git tag -a -m R${DC} R${DC}
+git tag -a -m "R${DC} ${BR}" R${DC}
+ls -l release/$RN
+if [ "$BR" = "epics7" ]; then
+	echo "default branch $BR, releasing package"
+	rm -f ../PACKAGES/${SEQ}-${PACKAGE}*
+	cp release/${SEQ}-${PACKAGE}-${DC}.tgz ../PACKAGES/
+fi
+

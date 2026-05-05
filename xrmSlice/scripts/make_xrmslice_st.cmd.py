@@ -35,6 +35,7 @@ def getSampleGeometry(peer):
     my_env = os.environ.copy()
     my_env["EPICS_PVA_NAME_SERVERS"] = peer.ip
 #    print(my_env)
+    print(f"getSampleGeometry EPICS_PVA_NAME_SERVERS={peer.ip} ./scripts/pvxget_value {peer.name}:SMPL")
     process = subprocess.Popen(
         ["./scripts/pvxget_value", f"{peer.name}:SMPL"], 
         env=my_env, stdout=subprocess.PIPE, text=True)
@@ -69,13 +70,14 @@ xrmSlice_registerRecordDeviceDriver(pdbbase)
 def print_peer_pm(args, ii, peer, CHFMT):
     for CYCLE in range(20):
         SPORT =  SPORT = f'XRM{ii}PM{CYCLE:02d}'
+        cyc = "{:02d}".format(CYCLE)
         args.fp.write(f"""
 xrmSlice_PM_Configure(f"{SPORT}", {args.geometries[ii].AI_COUNT})""")
 
         for ix in range(args.geometries[ii].AI_COUNT):
             ch = CHFMT.format(ix+1)
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceAI_PM.db", "HOST={args.host},UUT={peer.name},PORT={SPORT},ADDR={ix},CH={ch}")""")
+dbLoadRecords("./db/xrmSliceAI_PM.db", "HOST={args.host},UUT={peer.name},PORT={SPORT},CYCLE={cyc},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""

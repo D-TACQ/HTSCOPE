@@ -19,10 +19,14 @@ class XrmSlicePM: public XrmSliceCommon {
 
 protected:
 	int P_PM_RAW_INPUT;
+	epicsUInt32* pm_buf;
+	size_t pm_buf_len;
 
 public:
 	XrmSlicePM(const char *portName, int max_addr);
 	virtual ~XrmSlicePM() {}
 
+	virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value,
+	                                        size_t nElements);
 };
 #endif /* XRMSLICE_XRMSLICEAPP_SRC_XRMSLICEPM_H_ */
