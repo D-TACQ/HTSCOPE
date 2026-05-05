@@ -77,7 +77,7 @@ def print_peer_pm(args, ii, peer, CHFMT):
         port_count = geo.AI_COUNT
 
         args.fp.write(f"""
-xrmSlice_PM_Configure(f"{SPORT}", {port_count})""")
+xrmSlice_PM_Configure("{SPORT}", {port_count})""")
 
         for ix in range(args.geometries[ii].AI_COUNT):
             ch = CHFMT.format(ix+1)
