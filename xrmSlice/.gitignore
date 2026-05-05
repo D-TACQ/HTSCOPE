@@ -2,7 +2,7 @@
 ../
 /bin/
 /cfg/
-/db/
+#/db/
 /dbd/
 /html/
 /include/

@@ -70,7 +70,7 @@ def print_peer_pm(args, ii, peer, CHFMT):
     for CYCLE in range(20):
         SPORT =  SPORT = f'XRM{ii}PM{CYCLE:02d}'
         args.fp.write(f"""
-xrmSlice_PM_Configure(f"{SPORT}", args.geometries[ii].AI_COUNT)""")
+xrmSlice_PM_Configure(f"{SPORT}", {args.geometries[ii].AI_COUNT})""")
 
         for ix in range(args.geometries[ii].AI_COUNT):
             ch = CHFMT.format(ix+1)

@@ -1,0 +1,23 @@
+# xrmSlice.db
+# macros HOST USER UUT
+
+record(longout, "${HOST}:${UUT}:SYS:UPTIME") {
+	field(DTYP, "Soft Channel")
+	field(DOL,  {pva: {pv:"${UUT}:SYS:UPTIME", proc:"CP"}})
+	field(OMSL, "closed_loop")
+}
+#record(longin, "${HOST}:${UUT}:SYS:UPTIME:IN") {
+#	field(DTYP, "Soft Channel")
+#	field(INP,  {pva: {pv:"${UUT}:SYS:UPTIME", "proc":"CP"}})
+#	field(SCAN, "I/O Intr")
+#}
+
+record(waveform, "${HOST}:${UUT}:0:AI:CAL:ESLO")
+{
+  field(INP, {pva:{pv:"${UUT}:0:AI:CAL:ESLO", "proc":"CPP"}})
+  field(FTVL, "DOUBLE")            
+  field(NELM, "4096")       
+  field(SCAN, "1 second") 
+}
+
+
