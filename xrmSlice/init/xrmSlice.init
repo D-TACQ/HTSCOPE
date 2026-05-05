@@ -68,7 +68,7 @@ make_stcmd() {
 		echo "++ create EPICS db ${STCMD}"
 		cd ${ETOP}
 		XRM_SLICE_UUTS $XRM_SLICE_UUTS
-		./scripts/load.records > ${STCMD}
+		./scripts/make_xrmslice_st.cmd.py --output ${STCMD} $XRM_SLICE_UUTS
 	) fi
 }
 
