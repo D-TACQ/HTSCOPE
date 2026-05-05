@@ -1,5 +1,6 @@
 # Install directories
 ../
+../htscope1/
 /bin/
 /cfg/
 #/db/

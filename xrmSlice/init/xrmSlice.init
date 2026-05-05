@@ -1,0 +1,155 @@
+#!/bin/sh
+
+export IOCSH_PS1="xrmSlice>"
+ETOP=/usr/local/slice/epics
+STCMD=/tmp/slice_st.cmd
+PIDF=/var/run/xrmSlice_ioc.pid
+LOG=/var/log/slice_epics.log
+NICE=10
+LG="logger -t xrmSlice.init"
+RL_ACQ400=/tmp/records.dbl
+CP=2332                        # @@todo /etc/services
+XRM_EPICS_SH=/mnt/local/sysconfig/xrmSlice.sh
+
+
+if [ ! -e $XRM_EPICS_SH ]; then
+	echo xrmSlice: unable to continue without $XRM_EPICS_SH. GOODBYE!
+	exit 1
+fi
+
+
+wait_ioc_ready
+
+# default used for testing. Override in $XRM_EPICS_SH
+XRM_SLICE_UUTS=acq2206_588,10.12.197.110:44000
+
+if [ -f $XRM_EPICS_SH ]; then
+	source $XRM_EPICS_SH
+	(
+		grep ^export $XRM_EPICS_SH
+		[ -z $IOC_HOST ] && echo export IOC_HOST=$(hostname)
+		echo export EPICS_LOCAL_SYSCONFIG=1
+	) >> /etc/profile.d/xrm_epics.sh
+else
+	echo "WARNING: file $XRM_EPICS_SH missing"
+fi
+
+
+XRMSLICE_IOC=/usr/local/bin/xrmSlice
+if [ -e /mnt/local/xrmSlice ]; then
+	XRMSLICE_IOC=/mnt/local/xrmSlice
+	echo use patch IOC $XRMSLICE_IOC
+fi
+
+[ -e /mnt/local/sysconfig/acq400_xrm.sh ] && source /mnt/local/sysconfig/acq400_xrm.sh
+
+export HOST=${IOC_HOST:-xrm_magps_999}
+
+if [ ! -e $LOG ]; then
+	grep -q emlog /proc/modules; [ $? -ne 0 ] && /sbin/insmod /usr/local/lib/modules/emlog.ko
+	[ -e $LOG ] || mkemlog $LOG 16
+fi
+
+wait_ioc_records_loaded() {
+	let pollcat=0;
+	while [ ! -e "$RL.done" ]; do
+		let report=$pollcat%5
+		if [ $report -eq 0 ]; then
+			$LG wait_ioc_records_loaded $pollcat
+		fi
+		sleep 1
+		let pollcat="$pollcat+1"
+	done
+}
+
+
+make_stcmd() {
+	if [ ! -e ${STCMD} ]; then (
+		echo "++ create EPICS db ${STCMD}"
+		cd ${ETOP}
+		XRM_SLICE_UUTS $XRM_SLICE_UUTS
+		./scripts/load.records > ${STCMD}
+	) fi
+}
+
+make_aliases_loop() {
+	while read PV
+	do
+		echo alias\(\"$PV\",\"$1:${PV#*:}\"\)
+	done
+}
+make_aliases() {
+	make_aliases_loop $1 <$RL_ACQ400 >${ETOP}/db/local-aliases.db
+}
+
+bump()
+{
+	echo X | tr X \\030 | xrm_epics-console >/dev/null
+}
+
+start_ioc() {
+	/usr/local/bin/procServ \
+		-c ${ETOP} -p $PIDF -L $LOG ${CP} \
+		/bin/nice -n $NICE ${ACQ400_XRM_IOC} ${STCMD}
+	while [ ! -r $PIDF ]; do
+		usleep 10000
+	done
+	$LG start_ioc PID $(cat $PIDF) ioc $(pidof acq400ioc)
+}
+
+stop_ioc() {
+	if [ -r ${PIDF} ]; then
+		$LG stop_ioc PID $(cat $PIDF)
+		kill -s TERM $(cat ${PIDF})
+		rm ${PIDF}
+	fi
+}
+
+
+wait_ntp() {
+	if [ -z $IOC_WAIT_NTP ] || [ "$IOC_WAIT_NTP" = "0" ]; then
+		return
+	fi
+
+	while [ $IOC_WAIT_NTP -gt 0 ]; do
+		year=$(date +%Y)
+		if [ $year -lt 2025 ]; then
+			$LG waiting for NTP
+			sleep $IOC_WAIT_NTP
+			IOC_WAIT_NTP=$((IOC_WAIT_NTP-1))
+		else
+			break
+		fi
+	done
+	$LG NTP good
+}
+
+
+restart() {
+	if [ "$1" = "force" ]; then
+		rm -f ${STCMD}
+	fi
+	make_stcmd
+	wait_ntp
+	stop_ioc
+	start_ioc
+}
+
+
+case "$1" in
+bump)
+	bump;;
+forcestart)
+	restart force;;
+start|"")
+#	make_aliases $HOST
+	restart;;
+stop)
+	stop_ioc;;
+suspend)
+	kill -STOP $(pidof acq400ioc);;
+resume)
+	kill -CONT $(pidof acq400ioc);;
+*)
+	echo 'usage xrmSlice.init start|stop|forcestart|suspend|resume';;
+esac

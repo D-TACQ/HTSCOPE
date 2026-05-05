@@ -24,7 +24,20 @@ O.*/
 *.orig
 *.log
 .*.swp
+.project
+.cproject
+.settings
 .DS_Store
 htscope1.dbd
 htscope1/dbd/htscope1.dbd
+# remove me for htscope devel
+htscope1/
 
+xrmSlice/SAFE/
+xrmSlice/opkg/
+xrmSlice/records.dbl
+xrmSlice/release/
+xrmSlice/set_pva_env
+xrmSlice/st.cmd
+
+SAFE/*
