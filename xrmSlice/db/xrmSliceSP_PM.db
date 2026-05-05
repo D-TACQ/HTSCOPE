@@ -4,7 +4,9 @@
 record(aao, "${HOST}:${UUT}:PM:BUF:${CYCLE}"))
 {
 	field(DTYP, "asynInt32ArrayOut")
-	field(OUT,  "@asyn($(PORT),$(PMBUF),$(TIMEOUT))PM_RAW_INPUT")
+	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))PM_RAW_INPUT")
 	field(OMSL, "closed_loop")
 	field(DOL,  {pva: {pv:"${UUT}:PM:BUF:${CYCLE}", "proc":"CPP"}})
+	field(FTVL, "LONG")
+	field(NELM, "$(PM_BUF_NELM)")
 }
