@@ -1,7 +1,7 @@
 # xrmSliceSP_PM.db # call for every PORT
 
 
-record(aao, "${HOST}:${UUT}:PM:BUF:${CYCLE}"))
+record(aao, "${HOST}:${UUT}:PM:BUF:${CYCLE}")
 {
 	field(DTYP, "asynInt32ArrayOut")
 	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))PM_RAW_INPUT")

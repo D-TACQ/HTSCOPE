@@ -68,8 +68,9 @@ xrmSlice_registerRecordDeviceDriver(pdbbase)
 """)
 
 def print_peer_pm(args, ii, peer, CHFMT):
+    pm_cycles = int(os.getenv("XRMSLICE_PM_CYCLES", 20))
     geo = args.geometries[ii]
-    for CYCLE in range(20):
+    for CYCLE in range(pm_cycles):
         SPORT =  SPORT = f'XRM{ii}PM{CYCLE:02d}'
         cyc = "{:02d}".format(CYCLE)
         hupc = f"HOST={args.host},UUT={peer.name},PORT={SPORT},CYCLE={cyc},TIMEOUT=10"
@@ -95,7 +96,7 @@ dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupc},{pmbn}")""")
             
 def print_peer_ht(args, ii, peer, CHFMT):
     geo = args.geometries[ii]
-    port_count = 64
+    port_count = int(os.getenv("XRMSLICE_HT_ROWS", 64))
     for HTROW in range(port_count):
         row = "{:02d}".format(HTROW)
         SPORT = f'XRM{ii}HT{row}'
