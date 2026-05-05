@@ -26,6 +26,8 @@ public:
 	XrmSlicePM(const char *portName, int max_addr);
 	virtual ~XrmSlicePM() {}
 
+	virtual asynStatus readInt32Array(asynUser *pasynUser, epicsInt32 *value,
+	                                        size_t nElements, size_t *nIn);
 	virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value,
 	                                        size_t nElements);
 };

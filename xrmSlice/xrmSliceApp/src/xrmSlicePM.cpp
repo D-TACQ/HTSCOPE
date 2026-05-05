@@ -30,8 +30,33 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 }
 
 
-asynStatus XrmSlicePM::writeInt32Array(asynUser *pasynUser,
-                                     epicsInt32 *value, size_t nElements)
+asynStatus XrmSlicePM::readInt32Array(
+		asynUser *pasynUser, epicsInt32 *value, size_t nElements, size_t *nIn)
+{
+	    int function = pasynUser->reason;
+	    asynStatus status = asynSuccess;
+	    const char *paramName;
+	    int addr = 0;
+
+	    getParamName(function, &paramName);
+	    if (maxAddr > 1){
+		    status = pasynManager->getAddr(pasynUser, &addr);
+		    if(status!=asynSuccess) return status;
+	    }
+
+	    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+	              "%s: Port %s, Param %s, nElements %u\n", FN,
+	              portName, paramName, nElements);
+/*
+	    fprintf(stderr, "%s: Port %s, Param %s, nElements %u\n", FN,
+		              portName, paramName, nElements);
+*/
+	    return asynPortDriver::readInt32Array(
+			    pasynUser, value, nElements, nIn);
+}
+
+asynStatus XrmSlicePM::writeInt32Array(
+		asynUser *pasynUser, epicsInt32 *value, size_t nElements)
 {
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
@@ -46,9 +71,12 @@ asynStatus XrmSlicePM::writeInt32Array(asynUser *pasynUser,
 
     // Log the action
     asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "writeInt32Array: Port %s, Param %s, nElements %u\n",
+              "%s: Port %s, Param %s, nElements %u\n", FN,
               portName, paramName, nElements);
-
+/*
+    fprintf(stderr, "%s: Port %s, Param %s, nElements %u\n", FN,
+	              portName, paramName, nElements);
+*/
     if (function == P_PM_RAW_INPUT) {
 	if (pm_buf == 0){
 		pm_buf = new epicsUInt32[pm_buf_len = nElements];
