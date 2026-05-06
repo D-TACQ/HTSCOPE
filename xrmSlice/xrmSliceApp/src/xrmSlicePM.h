@@ -19,13 +19,26 @@ class XrmSlicePM: public XrmSliceCommon {
 
 protected:
 	int P_PM_RAW_INPUT;
-	epicsUInt32* pm_buf;
+	epicsUInt32* pm_raw;
+	epicsInt16** p_AI16;
+	epicsUInt32** p_DI32;
+	epicsUInt32** p_SP32;
 	size_t pm_buf_len;
+
+	bool wait_and_lock();
+	bool ready_to_slice();
+	virtual void task();
+
+	static void task_runner(void *drvPvt);
+	static int nice;
+	static int verbose;
 
 public:
 	XrmSlicePM(const char *portName, int max_addr);
 	virtual ~XrmSlicePM() {}
 
+	virtual asynStatus readInt16Array(asynUser *pasynUser, epicsInt16 *value,
+	                                        size_t nElements, size_t *nIn);
 	virtual asynStatus readInt32Array(asynUser *pasynUser, epicsInt32 *value,
 	                                        size_t nElements, size_t *nIn);
 	virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value,

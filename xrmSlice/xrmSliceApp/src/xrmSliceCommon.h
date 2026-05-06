@@ -40,6 +40,15 @@
 #define PS_XS_SP32_WRUS     	"XS_SP32_WRUS"  // WR time, usec since epoch
 
 
+/* solve printf warning
+ */
+
+#ifdef __arm__
+#define FMTSZT "%u"
+#else
+#define FMTSZT "%lu"
+#endif
+
 class XrmSliceCommon: public acq400_asynPortDriver {
 	static SamplePrams sample_prams_field_has_been_written;
 protected:

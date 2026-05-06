@@ -79,18 +79,24 @@ def print_peer_pm(args, ii, peer, CHFMT):
         args.fp.write(f"""
 xrmSlice_PM_Configure("{SPORT}", {port_count})""")
 
-        for ix in range(args.geometries[ii].AI_COUNT):
-            ch = CHFMT.format(ix+1)
-            args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupc},ADDR={ix},CH={ch}")""")
-
-        for ix in range(args.geometries[ii].DI_COUNT):
-            args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupc},ADDR={ix},CH={ix+1}")""")
-
+# blob
         pmbn = f"PM_BUF_NELM={geo.SSB*geo.NSAM//4}"
         args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupc},{pmbn}")""")
+
+# slices
+        hupcn = f"{hupc},NSAM={geo.NSAM-1}"             # index from RAW[1], skip ES
+        for ix in range(args.geometries[ii].AI_COUNT):
+            ch = CHFMT.format(ix+1)
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
+
+        for ix in range(args.geometries[ii].DI_COUNT):
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},CH={ix+1}")""")
+
+        args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn}")""")
 
 
             

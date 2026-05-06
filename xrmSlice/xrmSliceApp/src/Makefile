@@ -58,6 +58,8 @@ xrmSlice_SRCS += acq400_asynPortDriver.cpp
 xrmSlice_SRCS += xrmSliceCommon.cpp
 xrmSlice_SRCS += xrmSlicePM.cpp
 xrmSlice_SRCS += xrmSliceHT.cpp
+# below is part of libacq. Not sure how to port that to x86_64
+xrmSlice_SRCS += acq-util.c acq_rt.cpp 
 
 # Build the main IOC entry point where needed
 xrmSlice_SRCS_DEFAULT += xrmSliceMain.cpp
