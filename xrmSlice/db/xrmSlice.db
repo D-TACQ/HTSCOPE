@@ -14,10 +14,11 @@ record(longout, "${HOST}:${UUT}:SYS:UPTIME") {
 
 record(waveform, "${HOST}:${UUT}:0:AI:CAL:ESLO")
 {
-  field(INP, {pva:{pv:"${UUT}:0:AI:CAL:ESLO", "proc":"CPP"}})
-  field(FTVL, "DOUBLE")            
-  field(NELM, "4096")       
-  field(SCAN, "1 second") 
+	field(INP, {pva:{pv:"${UUT}:0:AI:CAL:ESLO", "proc":"CPP"}})
+	field(FTVL, "DOUBLE")
+	field(NELM, "193")
+	field(SCAN, "1 second")
 }
+
 
 
