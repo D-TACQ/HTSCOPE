@@ -14,7 +14,7 @@ record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:CH:${CH}")
 
 record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:CH:${CH}:EGU")
 {
-    field(DTYP, "asynFloatArrayIn")
+    field(DTYP, "asynFloat32ArrayIn")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_AI16_CH_EGU")
     field(FTVL, "FLOAT")
     field(NELM, "${NSAM}")
