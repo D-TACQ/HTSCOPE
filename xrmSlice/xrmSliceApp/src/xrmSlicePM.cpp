@@ -22,7 +22,7 @@ int XrmSlicePM::verbose = ::getenv_default("XrmSlicePM_VERBOSE", 0);
 
 XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	XrmSliceCommon(portName, max_addr),
-	pm_raw(0), p_AI16(0), p_DI32(0), p_SP32(0), pm_buf_len(0)
+	pm_raw(0), p_AI16(0), p_AI_EGU(0), p_DI32(0), p_SP32(0), pm_buf_len(0)
 {
 	asynStatus status;
 
@@ -70,10 +70,20 @@ bool XrmSlicePM::ready_to_slice() {
 	}
 	const int ndata = sample_prams.NSAM - 1;
 
+	/* allocate local buffers.
+	 * The XrmSlicePM instance stays live for the duration of the process,
+	 * and the OS recovers the data on process exit => no leak, no need for delete
+	 */
 	if (!p_AI16 && sample_prams.AI_COUNT > 0){
 		p_AI16 = new epicsInt16* [sample_prams.AI_COUNT];
 		for (int ai = 0; ai < sample_prams.AI_COUNT; ++ai){
 			p_AI16[ai] = new epicsInt16 [ndata];
+		}
+	}
+	if (!p_AI_EGU && sample_prams.AI_COUNT > 0){
+		p_AI_EGU = new epicsFloat32* [sample_prams.AI_COUNT];
+		for (int ai = 0; ai < sample_prams.AI_COUNT; ++ai){
+			p_AI_EGU[ai] = new epicsFloat32 [ndata];
 		}
 	}
 	if (!p_DI32 && sample_prams.DI_COUNT > 0){
@@ -96,6 +106,7 @@ void XrmSlicePM::task()
 /**< slicing takes place here. */
 {
 	SamplePrams& sp = sample_prams;
+	bool vectors_checked = false;
 
 	/* SP is unusual as have multiple params in address 0. Check assumptions! */
 	assert(P_XS_SP32_SP0+1 == P_XS_SP32_SP1);
@@ -108,6 +119,19 @@ void XrmSlicePM::task()
 		if (!ready_to_slice()){
 			continue;         // NO ACTION until buffer parameters are in place.
 		}
+		if (!vectors_checked){
+			for (int ai = 0; ai < sp.AI_COUNT; ++ai){
+				assert(p_AI16[ai] != 0);
+				assert(p_AI_EGU[ai] != 0);
+			}
+			for (int di = 0; di < sp.DI_COUNT; ++di){
+				assert(p_DI32[di] != 0);
+			}
+			for (int spad = 0; spad < sp.SP_COUNT; ++spad){
+				assert(p_SP32[spad] != 0);
+			}
+			vectors_checked = true;
+		}
 		if (verbose) fprintf(stderr, "%s slice\n", FN);
 
 		for (int row = 1; row < sp.NSAM; ++row){
@@ -117,9 +141,9 @@ void XrmSlicePM::task()
 			epicsInt16* psrc16 = (epicsInt16*)psrc32;
 
 			for (int ai = 0; ai < sp.AI_COUNT; ++ai){
-				if (p_AI16[ai]){
-					p_AI16[ai][outrow] = psrc16[ai];
-				}
+				const epicsInt16 raw = psrc16[ai];
+				p_AI16[ai][outrow] = raw;
+				p_AI_EGU[ai][outrow] = (float)raw*p_eslo[ai] + p_eoff[ai];
 			}
 			for (int di = 0; di < sp.DI_COUNT; ++di){
 				if (p_DI32[di]){
@@ -137,19 +161,14 @@ void XrmSlicePM::task()
 		const int NDATA = sp.NSAM-1;
 
 		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
-			if (p_AI16[ai]){
-				doCallbacksInt16Array(p_AI16[ai], NDATA, P_XS_AI16_CH_RAW, ai);
-			}
+			doCallbacksInt16Array(p_AI16[ai], NDATA, P_XS_AI16_CH_RAW, ai);
+			doCallbacksFloat32Array(p_AI_EGU[ai], NDATA, P_XS_AI16_CH_EGU, ai);
 		}
 		for (int di = 0; di < sp.DI_COUNT; ++di){
-			if (p_DI32[di]){
-				doCallbacksInt32Array((epicsInt32*)p_DI32[di], NDATA, P_XS_DI32_CH_RAW, di);
-			}
+			doCallbacksInt32Array((epicsInt32*)p_DI32[di], NDATA, P_XS_DI32_CH_RAW, di);
 		}
 		for (int spad = 0; spad < sp.SP_COUNT; ++spad){
-			if (p_SP32[spad]){
-				doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
-			}
+			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
 		}
 		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 

@@ -21,6 +21,7 @@ protected:
 	int P_PM_RAW_INPUT;
 	epicsUInt32* pm_raw;
 	epicsInt16** p_AI16;
+	epicsFloat32** p_AI_EGU;
 	epicsUInt32** p_DI32;
 	epicsUInt32** p_SP32;
 	size_t pm_buf_len;
