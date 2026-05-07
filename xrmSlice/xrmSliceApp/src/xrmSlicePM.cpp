@@ -1,5 +1,18 @@
 /*
  * xrmSlicePM.cpp
+ * Operation:
+ * INPUTS: P_PM_RAW_INPUT  : the blob duplicated from ACQ400 xrmIoc
+ * OUTPUT: P_XS_AI16_CH_RAW, P_XS_AI16_CH_EGU etc
+ *
+ * The slicing is done by the asyn task. task() operates on the buffers directly
+ * allocated by records. No bounce buffers.
+ * task() has to wait until buffers have been allocated, and indeed does not
+ * know where the buffers are until after they have been notified with
+ * read*Array(), write*Array().
+ * The read/write methods copy the buffer pointers for task() to use.
+ * We ASSUME that these buffer pointers are constant (how could they not be)
+ * We have to harden against initial times when there's no buffer for a task() and also
+ * for the initial call to read(), write() where we have the buffer, but no data yet.
  *
  *  Created on: 30 Apr 2026
  *      Author: pgm
@@ -80,23 +93,28 @@ bool XrmSlicePM::ready_to_slice() {
 }
 
 void XrmSlicePM::task()
+/**< slicing takes place here. */
 {
 	SamplePrams& sp = sample_prams;
-	const int OUTMAX = sp.NSAM-1;
+
 
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
+		if (verbose) fprintf(stderr, "%s inside lock\n", FN);
+
 		if (!ready_to_slice()){
-			continue;
+			continue;         // NO ACTION until buffer parameters are in place.
 		}
+		if (verbose) fprintf(stderr, "%s slice\n", FN);
+
 		for (int row = 1; row < sp.NSAM; ++row){
 			int outrow = row-1;
 
 			epicsUInt32* psrc32 = pm_raw + (row * sp.SSB/sizeof(epicsUInt32));
-			epicsInt16* psrc = (epicsInt16*)psrc32;
+			epicsInt16* psrc16 = (epicsInt16*)psrc32;
 
 			for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 				if (p_AI16[ai]){
-					p_AI16[ai][outrow] = psrc[ai];
+					p_AI16[ai][outrow] = psrc16[ai];
 				}
 			}
 			for (int di = 0; di < sp.DI_COUNT; ++di){
@@ -110,22 +128,28 @@ void XrmSlicePM::task()
 				}
 			}
 		}
+		if (verbose) fprintf(stderr, "%s callbacks\n", FN);
+
+		const int NDATA = sp.NSAM-1;
 
 		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 			if (p_AI16[ai]){
-				doCallbacksInt16Array(p_AI16[ai], OUTMAX, P_XS_AI16_CH_RAW, ai);
+				doCallbacksInt16Array(p_AI16[ai], NDATA, P_XS_AI16_CH_RAW, ai);
 			}
 		}
 		for (int di = 0; di < sp.DI_COUNT; ++di){
 			if (p_DI32[di]){
-				doCallbacksInt32Array((epicsInt32*)p_DI32[di], OUTMAX, P_XS_DI32_CH_RAW, di);
+				doCallbacksInt32Array((epicsInt32*)p_DI32[di], NDATA, P_XS_DI32_CH_RAW, di);
 			}
 		}
 		for (int spad = 0; spad < sp.SP_COUNT; ++spad){
 			if (p_SP32[spad]){
-				doCallbacksInt32Array((epicsInt32*)p_SP32[spad], OUTMAX, P_XS_SP32_SP0+spad, 0);
+				doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
 			}
 		}
+		doCallbacksInt32Array(pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
+
+		if (verbose) fprintf(stderr, "%s leaving lock()\n", FN);
 	}
 
 }
@@ -290,16 +314,17 @@ asynStatus XrmSlicePM::writeInt32Array(
 	              portName, paramName, nElements);
 */
     if (function == P_PM_RAW_INPUT) {
-	if (pm_buf_len == nElements){
-		lock();
-		pm_raw = (PU32)value;
-		doCallbacksInt32Array(value, nElements, P_PM_RAW_INPUT, 0);
-		unlock();
-		epicsEventSignal(eventId);
-	}else{
-		fprintf(stderr, "ERROR:%s nElements set " FMTSZT " previously " FMTSZT "\n",
-					FN, nElements, pm_buf_len);
+	lock();
+	if (pm_buf_len == 0){
+		pm_buf_len = nElements;
 	}
+	assert(pm_buf_len == nElements);
+	if (pm_raw == 0){
+		pm_raw = (PU32)value;
+	}
+	assert(pm_raw == (PU32)value);
+	unlock();
+	epicsEventSignal(eventId);
     } else {
         // Fall back to base class for standard parameters
         status = asynPortDriver::writeInt32Array(pasynUser, value, nElements);
