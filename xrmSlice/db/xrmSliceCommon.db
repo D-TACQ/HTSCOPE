@@ -1,0 +1,94 @@
+# instantiate fields for XrmSliceCommon
+# EOFF, ESLO are dynamic (user can change gain on the fly), 
+#   so a "closed_loop" monitor makes sense
+# SMPL parameters: if it were easy to specify GROUP links, this would be a piece of cake.
+# Since we have to break it into fields, and the db creation process already deconstructed
+# SMPL, which is constant, the simplest route is to make a static PINI init..
+
+
+record(aao, "${HOST}:${UUT}:X:AI:CAL:ESLO")
+{
+	field(DTYP, "asynFloat32ArrayOut")
+	
+	field(DOL, {pva:{pv:"${UUT}:0:AI:CAL:ESLO", "proc":"CPP"}})
+	field(OMSL, "closed_loop")
+	field(FTVL, "FLOAT")
+	field(OUT, ""@asyn($(PORT),0,$(TIMEOUT))PS_XS_ESLO")     
+  	field(NELM, "193")
+}
+	
+record(aao, "${HOST}:${UUT}:X:AI:CAL:EOFF")
+{
+	field(DTYP, "asynFloat32ArrayOut")
+	
+	field(DOL, {pva:{pv:"${UUT}:0:AI:CAL:EOFF", "proc":"CPP"}})
+	field(OMSL, "closed_loop")
+	field(FTVL, "FLOAT")
+	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))PS_XS_EOFF")     
+	field(NELM, "193")
+}
+	
+record(longout, "${HOST}:${UUT}:SMPL:SSB")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${SSB}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_SSB")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:NSAM")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${NSAM}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_NSAM")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:AI_COUNT")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${AI_COUNT}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_AI_COUNT")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:AI_INDEX")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${AI_INDEX}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_AI_INDEX")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:DI_COUNT")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${DI_COUNT}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_DI_COUNT")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:DI_INDEX")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${DI_INDEX}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_DI_INDEX")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:SP_COUNT")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${SP_COUNT}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_SP_COUNT")
+}
+
+record(longout, "${HOST}:${UUT}:SMPL:SP_INDEX")
+{
+	field(DTYP, "asynInt32")
+	field(VAL,  "${SP_INDEX}")
+	field(PINI, "YES")
+	field(OUT, "@asyn($(PORT),0,$(TIMEOUT))XS_SMPL_SP_INDEX")
+}
+

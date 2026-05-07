@@ -29,6 +29,11 @@ class SampleGeometry(NamedTuple):
 
 pvxget_value_pattern = re.compile("^[ ]*([A-Z_]+).value.*= ([0-9]+)")
 
+def sg2db_prams(sg):
+       tmp = re.sub(r'SampleGeometry\(', '', str(sg))
+       tmp = re.sub(r'\)', '', tmp)
+       return re.sub(r' ', '', tmp)
+
 # @@todo: surely p4p does it better..
 
 def getSampleGeometry(peer):
@@ -78,6 +83,11 @@ def print_peer_pm(args, ii, peer, CHFMT):
 
         args.fp.write(f"""
 xrmSlice_PM_Configure("{SPORT}", {port_count})""")
+# common
+        if CYCLE == 0:
+                aip1 = f"AICOUNT1={geo.AI_COUNT+1}"
+                args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceCommon.db", "{hupc},{sg2db_prams(geo)},{aip1}")""")
 
 # blob
         pmbn = f"PM_BUF_NELM={geo.SSB*geo.NSAM//4}"

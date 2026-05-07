@@ -40,9 +40,7 @@
 #define PS_XS_SP32_WRUS     	"XS_SP32_WRUS"  // WR time, usec since epoch
 
 
-/* solve printf warning
- */
-
+/* fix printf compiler warning */
 #ifdef __arm__
 #define FMTSZT "%u"
 #else
