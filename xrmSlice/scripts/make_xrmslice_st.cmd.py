@@ -96,7 +96,7 @@ dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
 dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},CH={ix+1}")""")
 
         args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn}")""")
+dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn},PM_BUF_NELM={geo.NSAM}")""")
 
 
             
