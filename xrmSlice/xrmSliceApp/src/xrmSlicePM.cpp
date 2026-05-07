@@ -4,15 +4,7 @@
  * INPUTS: P_PM_RAW_INPUT  : the blob duplicated from ACQ400 xrmIoc
  * OUTPUT: P_XS_AI16_CH_RAW, P_XS_AI16_CH_EGU etc
  *
- * The slicing is done by the asyn task. task() operates on the buffers directly
- * allocated by records. No bounce buffers.
- * task() has to wait until buffers have been allocated, and indeed does not
- * know where the buffers are until after they have been notified with
- * read*Array(), write*Array().
- * The read/write methods copy the buffer pointers for task() to use.
- * We ASSUME that these buffer pointers are constant (how could they not be)
- * We have to harden against initial times when there's no buffer for a task() and also
- * for the initial call to read(), write() where we have the buffer, but no data yet.
+ * The slicing is done by the asyn task.
  *
  *  Created on: 30 Apr 2026
  *      Author: pgm
@@ -76,17 +68,25 @@ bool XrmSlicePM::ready_to_slice() {
 		fprintf(stderr, "%s WARNING: !sample_prams.isValid()\n", FN);
 		return false;
 	}
+	const int ndata = sample_prams.NSAM - 1;
+
 	if (!p_AI16 && sample_prams.AI_COUNT > 0){
-		fprintf(stderr, "%s WARNING: p_AI16 not set\n", FN);
-		return false;
+		p_AI16 = new epicsInt16* [sample_prams.AI_COUNT];
+		for (int ai = 0; ai < sample_prams.AI_COUNT; ++ai){
+			p_AI16[ai] = new epicsInt16 [ndata];
+		}
 	}
 	if (!p_DI32 && sample_prams.DI_COUNT > 0){
-		fprintf(stderr, "%s WARNING: p_DI32 not set\n", FN);
-		return false;
+		p_DI32 = new epicsUInt32* [sample_prams.DI_COUNT];
+		for (int di = 0; di < sample_prams.DI_COUNT; ++di){
+			p_DI32[di] = new epicsUInt32 [ndata];
+		}
 	}
 	if (!p_SP32 && sample_prams.SP_COUNT > 0){
-		fprintf(stderr, "%s WARNING: p_SP32 not set\n", FN);
-		return false;
+		p_SP32 = new epicsUInt32* [sample_prams.SP_COUNT];
+		for (int sp = 0; sp < sample_prams.SP_COUNT; ++sp){
+			p_SP32[sp] = new epicsUInt32 [ndata];
+		}
 	}
 
 	return true;
@@ -97,6 +97,10 @@ void XrmSlicePM::task()
 {
 	SamplePrams& sp = sample_prams;
 
+	/* SP is unusual as have multiple params in address 0. Check assumptions! */
+	assert(P_XS_SP32_SP0+1 == P_XS_SP32_SP1);
+	assert(P_XS_SP32_SP1+1 == P_XS_SP32_SP2);
+	assert(P_XS_SP32_SP2+1 == P_XS_SP32_SP3);
 
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s inside lock\n", FN);
@@ -147,7 +151,7 @@ void XrmSlicePM::task()
 				doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
 			}
 		}
-		doCallbacksInt32Array(pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
+		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 
 		if (verbose) fprintf(stderr, "%s leaving lock()\n", FN);
 	}
@@ -159,137 +163,9 @@ void XrmSlicePM::task_runner(void *drvPvt)
 	((XrmSlicePM *)drvPvt)->task();
 }
 
-asynStatus XrmSlicePM::readInt16Array(asynUser *pasynUser, epicsInt16 *value,
-		size_t nElements, size_t *nIn)
-{
-	int function = pasynUser->reason;
-	asynStatus status = asynSuccess;
-	const char *paramName;
-	int addr = 0;
-
-	getParamName(function, &paramName);
-	if (maxAddr > 1){
-		status = pasynManager->getAddr(pasynUser, &addr);
-		if(status!=asynSuccess) return status;
-	}
-
-	asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-			"%s: Port %s, Param %s, nElements " FMTSZT "\n", FN,
-			portName, paramName, nElements);
-
-	lock();
-	if (function == P_XS_AI16_CH_RAW){
-		if (!sample_prams.isValid()){
-			fprintf(stderr, "%s WARNING sample_prams not valid\n", FN);
-			status = asynError;
-		}
-		if (p_AI16){
-			if (!p_AI16[addr]){
-				/* @@todo this is sketchy! What are we doing?
-				 * first call to read() sets the internal dst buffer to value,
-				 * assumed to be pre-allocated WF array from record.
-				 * later the task() will fill this, but meanwhile, return 0 bytes,
-				 * so clients don't see garbage.
-				 * Couple problems
-				 * - maybe should be clearing nElements so that the parent read does nothing.
-				 * - _can_ we rely on updated callbacks. Not all clients monitor(), some of them just read() ..
-				 *    .. well, then just read again, pick up last value left by task. Let's see..
-				 */
-				p_AI16[addr] = value;
-				*nIn = 0;
-			}
-			assert(p_AI16[addr] == value);
-		}
-	}
-	unlock();
-
-	if (status == asynSuccess){
-		status = asynPortDriver::readInt16Array(
-				pasynUser, value, nElements, nIn);
-	}
-	asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-			"%s: Port %s, Param %s, nElements " FMTSZT " return %d\n", FN,
-			portName, paramName, nElements, status);
-
-	return status;
-}
 
 typedef epicsUInt32 * PU32;
 
-asynStatus XrmSlicePM::readInt32Array(
-		asynUser *pasynUser, epicsInt32 *value, size_t nElements, size_t *nIn)
-{
-	int function = pasynUser->reason;
-	asynStatus status = asynSuccess;
-	const char *paramName;
-	int addr = 0;
-
-	getParamName(function, &paramName);
-	if (maxAddr > 1){
-		status = pasynManager->getAddr(pasynUser, &addr);
-		if(status!=asynSuccess) return status;
-	}
-
-	asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-			"%s: Port %s, Param %s, nElements " FMTSZT "\n", FN,
-			portName, paramName, nElements);
-	lock();
-	if (function == P_XS_DI32_CH_RAW){
-		if (!sample_prams.isValid()){
-			fprintf(stderr, "%s WARNING sample_prams not valid\n", FN);
-			status = asynError;
-		}
-		if (!p_DI32){
-			p_DI32 = new PU32 [sample_prams.DI_COUNT];
-		}
-
-		if (p_DI32){
-			assert(addr < sample_prams.DI_COUNT);
-			if (!p_DI32[addr]){
-				p_DI32[addr] = (PU32)value;
-				*nIn = 0;
-			}
-			assert(p_DI32[addr] == (PU32)value);
-		}
-	}
-	if (function == P_XS_SP32_SP0 ||
-			function == P_XS_SP32_SP1 ||
-			function == P_XS_SP32_SP2 ||
-			function == P_XS_SP32_SP3 	){
-
-		assert(P_XS_SP32_SP1-P_XS_SP32_SP0 == 1);
-		assert(P_XS_SP32_SP2-P_XS_SP32_SP0 == 2);
-		assert(P_XS_SP32_SP3-P_XS_SP32_SP0 == 3);
-
-		if (!sample_prams.isValid()){
-			fprintf(stderr, "%s WARNING sample_prams not valid\n", FN);
-			status = asynError;
-		}
-		if (!p_SP32){
-			p_SP32 = new PU32 [sample_prams.SP_COUNT];
-		}
-		assert(addr == 0);
-		if (p_SP32){
-			int spad = function - P_XS_SP32_SP0;
-			if (!p_SP32[spad]){
-				p_SP32[spad] = (PU32)value;
-				*nIn = 0;
-			}
-			assert(p_SP32[spad] == (PU32)value);
-		}
-	}
-	unlock();
-
-	if (status == asynSuccess){
-		status = asynPortDriver::readInt32Array(
-				pasynUser, value, nElements, nIn);
-	}
-	asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-			"%s: Port %s, Param %s, nElements " FMTSZT " return %d\n", FN,
-			portName, paramName, nElements, status);
-
-	return status;
-}
 
 asynStatus XrmSlicePM::writeInt32Array(
 		asynUser *pasynUser, epicsInt32 *value, size_t nElements)
