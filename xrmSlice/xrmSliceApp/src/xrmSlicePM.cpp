@@ -203,7 +203,7 @@ asynStatus XrmSlicePM::writeInt32Array(
 	epicsEventSignal(eventId);
     } else {
         // Fall back to base class for standard parameters
-        status = asynPortDriver::writeInt32Array(pasynUser, value, nElements);
+        status = XrmSliceCommon::writeInt32Array(pasynUser, value, nElements);
     }
 
     return status;

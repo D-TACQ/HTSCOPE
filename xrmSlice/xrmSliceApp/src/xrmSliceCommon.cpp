@@ -91,6 +91,10 @@ asynStatus XrmSliceCommon::writeInt32(asynUser *pasynUser, epicsInt32 value)
 	    } while(0);
 
 	    if (sample_prams.validate(sample_prams_field_has_been_written)){
+		    fprintf(stderr,
+				    "%s:%s: function=%d, name=%s, value=%d sample_prams valid!\n",
+		    		    DN, FN, function, paramName, value);
+
 		    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
 		    	              "%s:%s: function=%d, name=%s, value=%d sample_prams valid!\n",
 		    	              DN, FN, function, paramName, value);
@@ -105,6 +109,59 @@ asynStatus XrmSliceCommon::writeInt32(asynUser *pasynUser, epicsInt32 value)
 	    else
 	        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
 	              "%s:%s: function=%d, name=%s, value=%d\n",
+	              DN, FN, function, paramName, value);
+	    return status;
+}
+
+void XrmSliceCommon::update_cal(VF& vx, epicsFloat32 *value, size_t nElements)
+{
+	const size_t mysize = nElements-1;
+	if (vx.size() != mysize && vx.size() != 0){
+		fprintf(stderr, "WARNING: CAL size change? " FMTSZT " -> " FMTSZT "\n",
+				vx.size(), mysize);
+		vx.clear();
+	}
+	for (size_t ii = 0; ii < mysize; ++ii){
+		vx.push_back(value[ii+1]);
+	}
+}
+
+asynStatus XrmSliceCommon::writeFloat32Array(
+	asynUser *pasynUser, epicsFloat32 *value, size_t nElements)
+{
+	    int function = pasynUser->reason;
+	    asynStatus status = asynSuccess;
+	    const char *paramName;
+	    int addr = 0;
+
+	    /* Fetch the parameter string name for possible use in debugging */
+	    getParamName(function, &paramName);
+
+	    if (maxAddr > 1){
+		    status = pasynManager->getAddr(pasynUser, &addr);
+		    if(status!=asynSuccess) return status;
+	    }
+
+	    if (function == P_XS_EOFF || function == P_XS_ESLO) {
+		lock();
+		update_cal(function==P_XS_EOFF? p_eoff: p_eslo, value, nElements);
+		unlock();
+		epicsEventSignal(eventId);
+	    } else {
+	        // Fall back to base class for standard parameters
+	        status = XrmSliceCommon::writeFloat32Array(pasynUser, value, nElements);
+	    }
+
+	    /* Do callbacks so higher layers see any changes */
+	    status = (asynStatus) callParamCallbacks();
+
+	    if (status)
+	        epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
+	                  "%s:%s: status=%d, function=%d, name=%s, value=%p",
+	                  DN, FN, status, function, paramName, value);
+	    else
+	        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+	              "%s:%s: function=%d, name=%s, value=%p\n",
 	              DN, FN, function, paramName, value);
 	    return status;
 }

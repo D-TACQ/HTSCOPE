@@ -47,10 +47,16 @@
 #define FMTSZT "%lu"
 #endif
 
+typedef std::vector<float> VF;
+
 class XrmSliceCommon: public acq400_asynPortDriver {
 	static SamplePrams sample_prams_field_has_been_written;
+
+	static void update_cal(VF& vx, epicsFloat32 *value, size_t nElements);
 protected:
 	static SamplePrams sample_prams;
+	static VF p_eslo;      // index from zero
+	static VF p_eoff;
 
 	int P_XS_UPTIME;
 	int P_XS_EOFF;
@@ -76,12 +82,16 @@ protected:
 	int P_XS_SP32_WRVS;
 	int P_XS_SP32_WRVT;
 	int P_XS_SP32_WRUS;
+
 public:
 	XrmSliceCommon(const char *portName, int max_addr);
 	virtual ~XrmSliceCommon();
 
 	asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
 	/**< clients MUST call if own writeInt32 does not "see function" */
+
+	virtual asynStatus writeFloat32Array(asynUser *pasynUser, epicsFloat32 *value,
+	                                        size_t nElements);
 };
 
 #endif /* XRMSLICE_XRMSLICEAPP_SRC_XRMSLICECOMMON_H_ */

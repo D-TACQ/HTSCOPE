@@ -13,7 +13,7 @@ record(aao, "${HOST}:${UUT}:X:AI:CAL:ESLO")
 	field(DOL, {pva:{pv:"${UUT}:0:AI:CAL:ESLO", "proc":"CPP"}})
 	field(OMSL, "closed_loop")
 	field(FTVL, "FLOAT")
-	field(OUT, ""@asyn($(PORT),0,$(TIMEOUT))PS_XS_ESLO")     
+	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))XS_ESLO")
   	field(NELM, "193")
 }
 	
@@ -24,7 +24,7 @@ record(aao, "${HOST}:${UUT}:X:AI:CAL:EOFF")
 	field(DOL, {pva:{pv:"${UUT}:0:AI:CAL:EOFF", "proc":"CPP"}})
 	field(OMSL, "closed_loop")
 	field(FTVL, "FLOAT")
-	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))PS_XS_EOFF")     
+	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))XS_EOFF")
 	field(NELM, "193")
 }
 	
