@@ -29,3 +29,4 @@ O.*/
 *.log
 .*.swp
 .DS_Store
+set_slice_env
