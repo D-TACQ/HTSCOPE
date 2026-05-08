@@ -1,0 +1,38 @@
+#!/bin/sh
+# usage: pm_plot8 00:CH:01 00:CH:02 00:CH:03 00:CH:04 00:CH:05 00:CH:06 00:CH:07 00:CH:08 
+export EPICS_PVA_NAME_SERVERS=${EPICS_PVA_NAME_SERVERS:-10.12.197.13:44400}
+
+HOST=${HOST:-acq1102_057}
+UUT=${UUT:-acq2206_588}
+
+if [ "$EGU" != "NO" ]; then
+	EGU=${EGU:-:EGU}
+	PRINTN=10
+else
+	PRINTN=20
+fi
+
+PFX=${HOST}:${UUT}:PM
+
+case $1 in
+pmXch01)
+	myargs="00:CH:01 01:CH:01 02:CH:01 03:CH:01 04:CH:01 05:CH:01 06:CH:01 07:CH:01";;
+pm0ch0X)
+	myargs="00:CH:01 00:CH:02 00:CH:03 00:CH:04 00:CH:05 00:CH:06 00:CH:07 00:CH:08";;
+help)
+	echo pm_plot8 pmXch01
+	echo pm_plot8 pm0ch0X
+	echo pm_plot8 yy:CH:cc yy:CH:cc ...
+	exit 0;;
+*)
+	myargs="$*";;
+esac
+
+ARGS=""
+for pc in $myargs; do ARGS="$ARGS $PFX:$pc$EGU"; done
+
+# limit points for ascii plot
+echo pvxmonitor -# $PRINTN -r value $ARGS
+pvxmonitor -# $PRINTN -r value $ARGS
+
+
