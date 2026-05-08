@@ -27,7 +27,10 @@ record(aao, "${HOST}:${UUT}:0:AI:CAL:EOFF")
 	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))XS_EOFF")
 	field(NELM, "193")
 }
-	
+
+# @@todo: we should get the SMPL band back together again
+# @@todo: use DOL=$SSB, closed_loop for true CONST on power up init!
+
 record(longout, "${HOST}:${UUT}:SMPL:SSB")
 {
 	field(DTYP, "asynInt32")

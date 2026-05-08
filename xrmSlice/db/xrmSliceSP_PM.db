@@ -1,12 +1,11 @@
 # xrmSliceSP_PM.db # call for every PORT
 
 
-record(aao, "${HOST}:${UUT}:PM:BUF:${CYCLE}")
+record(aai, "${HOST}:${UUT}:PM:BUF:${CYCLE}:SP:${SP}")
 {
-	field(DTYP, "asynInt32ArrayOut")
-	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))PM_RAW_INPUT")
-	field(OMSL, "closed_loop")
-	field(DOL,  {pva: {pv:"${UUT}:PM:BUF:${CYCLE}", "proc":"CPP"}})
+	field(DTYP, "asynInt32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_SP32_SP0")
 	field(FTVL, "LONG")
-	field(NELM, "$(PM_BUF_NELM)")
+	field(NELM, "$(NSAM)")
+	field(SCAN, "I/O Intr")
 }

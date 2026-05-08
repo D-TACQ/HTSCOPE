@@ -92,7 +92,7 @@ dbLoadRecords("./db/xrmSliceCommon.db", "{hupc},{sg2db_prams(geo)},{aip1}")""")
 # blob
         pmbn = f"PM_BUF_NELM={geo.SSB*geo.NSAM//4}"
         args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupc},{pmbn}")""")
+dbLoadRecords("./db/xrmSlice_PM.db", "{hupc},{pmbn}")""")
 
 # slices
         hupcn = f"{hupc},NSAM={geo.NSAM-1}"             # index from RAW[1], skip ES
@@ -105,8 +105,9 @@ dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
             args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},CH={ix+1}")""")
 
-        args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn},PM_BUF_NELM={geo.NSAM}")""")
+        for sp in range(8):
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn},ADDR={sp},SP={sp:02d}")""")
 
 
             
