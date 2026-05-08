@@ -6,7 +6,7 @@
 # SMPL, which is constant, the simplest route is to make a static PINI init..
 
 
-record(aao, "${HOST}:${UUT}:X:AI:CAL:ESLO")
+record(aao, "${HOST}:${UUT}:0:AI:CAL:ESLO")
 {
 	field(DTYP, "asynFloat32ArrayOut")
 	
@@ -17,7 +17,7 @@ record(aao, "${HOST}:${UUT}:X:AI:CAL:ESLO")
   	field(NELM, "193")
 }
 	
-record(aao, "${HOST}:${UUT}:X:AI:CAL:EOFF")
+record(aao, "${HOST}:${UUT}:0:AI:CAL:EOFF")
 {
 	field(DTYP, "asynFloat32ArrayOut")
 	

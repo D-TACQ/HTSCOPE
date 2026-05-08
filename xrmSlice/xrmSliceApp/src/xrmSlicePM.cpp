@@ -104,6 +104,8 @@ bool XrmSlicePM::ready_to_slice() {
 	return true;
 }
 
+#define SPAD_LIM 8        // nothing to see in higher order SPADs, don't waste time on them
+
 void XrmSlicePM::task()
 /**< slicing takes place here. */
 {
@@ -152,7 +154,7 @@ void XrmSlicePM::task()
 					p_DI32[di][outrow] = psrc32[sp.DI_INDEX+di];
 				}
 			}
-			for (int spad = 0; spad < sp.SP_COUNT; ++spad){
+			for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
 				if (p_SP32[spad]){
 					p_SP32[spad][outrow] = psrc32[sp.SP_INDEX+spad];
 				}
@@ -171,11 +173,8 @@ void XrmSlicePM::task()
 		for (int di = 0; di < sp.DI_COUNT; ++di){
 			doCallbacksInt32Array((epicsInt32*)p_DI32[di], NDATA, P_XS_DI32_CH_RAW, di);
 		}
-		for (int spad = 0; spad < sp.SP_COUNT; ++spad){
+		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
 			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
-			if (spad == 8){
-				break;
-			}
 		}
 		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 
