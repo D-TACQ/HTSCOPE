@@ -6,10 +6,13 @@
  */
 
 #include "xrmSliceCommon.h"
+#include "acq-util.h"
 
 static const char *driverName= __FILE__;
 #define DN	driverName
 #define FN	__FUNCTION__
+
+int XrmSliceCommon::verbose = ::getenv_default("XrmSliceCommon_VERBOSE", 0);
 
 XrmSliceCommon::XrmSliceCommon(const char* portName, int max_addr):
 	acq400_asynPortDriver(portName,
@@ -37,6 +40,7 @@ XrmSliceCommon::XrmSliceCommon(const char* portName, int max_addr):
 	createParam(PS_XS_SMPL_DI_INDEX, 	asynParamInt32,	     &P_XS_SMPL_DI_INDEX);
 	createParam(PS_XS_SMPL_SP_COUNT,	asynParamInt32,	     &P_XS_SMPL_SP_COUNT);
 	createParam(PS_XS_SMPL_SP_INDEX, 	asynParamInt32,	     &P_XS_SMPL_SP_INDEX);
+	fprintf(stderr, "%s final param: %s %d\n", FN, PS_XS_SMPL_SP_INDEX, P_XS_SMPL_SP_INDEX);
 }
 
 XrmSliceCommon::~XrmSliceCommon() {
@@ -47,8 +51,8 @@ XrmSliceCommon::~XrmSliceCommon() {
 SamplePrams XrmSliceCommon::sample_prams;
 SamplePrams XrmSliceCommon::sample_prams_field_has_been_written;
 
-VF XrmSliceCommon::p_eslo;      // index from zero
-VF XrmSliceCommon::p_eoff;
+VF XrmSliceCommon::eslo;      // index from zero
+VF XrmSliceCommon::eoff;
 
 
 #define SET_SAMPLE_PRAMS_FIELD(function, FIELD) \
@@ -121,9 +125,11 @@ asynStatus XrmSliceCommon::writeInt32(asynUser *pasynUser, epicsInt32 value)
 void XrmSliceCommon::update_cal(VF& vx, epicsFloat32 *value, size_t nElements)
 {
 	const size_t mysize = nElements-1;
-	if (vx.size() != mysize && vx.size() != 0){
-		fprintf(stderr, "WARNING: CAL size change? " FMTSZT " -> " FMTSZT "\n",
-				vx.size(), mysize);
+	if (vx.size()){
+		if (vx.size() != mysize){
+			fprintf(stderr, "WARNING: CAL size change? " FMTSZT " -> " FMTSZT "\n",
+							vx.size(), mysize);
+		}
 		vx.clear();
 	}
 	for (size_t ii = 0; ii < mysize; ++ii){
@@ -149,9 +155,13 @@ asynStatus XrmSliceCommon::writeFloat32Array(
 
 	    if (function == P_XS_EOFF || function == P_XS_ESLO) {
 		lock();
-		update_cal(function==P_XS_EOFF? p_eoff: p_eslo, value, nElements);
+		if (verbose) fprintf(stderr, "%s function:%d:%s nelems:%u\n",
+			FN, function,
+			    function==P_XS_EOFF? PS_XS_EOFF:
+			    function==P_XS_ESLO? PS_XS_ESLO: "unknown", nElements);
+		update_cal(function==P_XS_EOFF? eoff: eslo, value, nElements);
 		unlock();
-		epicsEventSignal(eventId);
+		//epicsEventSignal(eventId);
 	    } else {
 	        // Fall back to base class for standard parameters
 	        status = XrmSliceCommon::writeFloat32Array(pasynUser, value, nElements);

@@ -38,6 +38,8 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64Array, &P_XS_SP32_WRUS);
 
 	createParam(PS_PM_RAW_INPUT,	asynParamInt32Array,  &P_PM_RAW_INPUT);
+	fprintf(stderr, "%s final param: %s %d\n", FN, PS_PM_RAW_INPUT, P_PM_RAW_INPUT);
+
 
 	/* Create the thread that computes the waveforms in the background */
 	char* taskname = new char[32];
@@ -143,7 +145,7 @@ void XrmSlicePM::task()
 			for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 				const epicsInt16 raw = psrc16[ai];
 				p_AI16[ai][outrow] = raw;
-				p_AI_EGU[ai][outrow] = (float)raw*p_eslo[ai] + p_eoff[ai];
+				p_AI_EGU[ai][outrow] = (float)raw*eslo[ai] + eoff[ai];
 			}
 			for (int di = 0; di < sp.DI_COUNT; ++di){
 				if (p_DI32[di]){
@@ -161,7 +163,9 @@ void XrmSlicePM::task()
 		const int NDATA = sp.NSAM-1;
 
 		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
+			if (verbose > 1) fprintf(stderr, "%s P:%d A:%d\n", FN, P_XS_AI16_CH_RAW, ai);
 			doCallbacksInt16Array(p_AI16[ai], NDATA, P_XS_AI16_CH_RAW, ai);
+			if (verbose > 1) fprintf(stderr, "%s P:%d A:%d\n", FN, P_XS_AI16_CH_EGU, ai);
 			doCallbacksFloat32Array(p_AI_EGU[ai], NDATA, P_XS_AI16_CH_EGU, ai);
 		}
 		for (int di = 0; di < sp.DI_COUNT; ++di){
@@ -169,6 +173,9 @@ void XrmSlicePM::task()
 		}
 		for (int spad = 0; spad < sp.SP_COUNT; ++spad){
 			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
+			if (spad == 8){
+				break;
+			}
 		}
 		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 

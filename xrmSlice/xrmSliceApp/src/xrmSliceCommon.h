@@ -55,8 +55,9 @@ class XrmSliceCommon: public acq400_asynPortDriver {
 	static void update_cal(VF& vx, epicsFloat32 *value, size_t nElements);
 protected:
 	static SamplePrams sample_prams;
-	static VF p_eslo;      // index from zero
-	static VF p_eoff;
+	static VF eslo;      // index from zero
+	static VF eoff;
+	static int verbose;
 
 	int P_XS_UPTIME;
 	int P_XS_EOFF;
