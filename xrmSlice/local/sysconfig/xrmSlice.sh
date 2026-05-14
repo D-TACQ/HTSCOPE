@@ -1,0 +1,15 @@
+export XRM_SLICE_UUTS=acq2206_588,10.12.197.110:44000
+
+export ETH0_IP=$(/usr/local/CARE/ip_addr_show eth0)
+export ETH00_IP=$ETH0_IP:44400
+# bind server to ETH00
+export EPICS_CAS_INTF_ADDR_LIST=$ETH00_IP
+export EPICS_PVAS_INTF_ADDR_LIST=$ETH00_IP
+
+# we get our PVA incoming from acq2206_088:44000
+#export EPICS_PVA_AUTO_ADDR_LIST=NO
+#export EPICS_PVA_NAME_SERVERS="$EPICS_PVA_ADDR_LIST"
+
+export XRMSLICE_HT_ROWS=0
+export XRMSLICE_PM_CYCLES=20
+
