@@ -92,7 +92,7 @@ dbLoadRecords("./db/xrmSliceCommon.db", "{hupc},{sg2db_prams(geo)},{aip1}")""")
 # blob
         pmbn = f"PM_BUF_NELM={geo.SSB*geo.NSAM//4}"
         args.fp.write(f"""
-dbLoadRecords("./db/xrmSlice_PM.db", "{hupc},{pmbn}")""")
+dbLoadRecords("./db/xrmSlice_PM.db", "{hupc},{pmbn},ADDR=0,NSAM={geo.NSAM-1}")""")
 
 # slices
         hupcn = f"{hupc},NSAM={geo.NSAM-1}"             # index from RAW[1], skip ES

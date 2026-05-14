@@ -33,7 +33,7 @@ record(aai, "${HOST}:${UUT}:PM:${CYCLE}:WRUS")
 {
 	field(DTYP, "asynInt64ArrayIn")
 	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_SP32_WRUS")
-	field(FTVL, "ULONG")
+	field(FTVL, "UINT64")
 	field(NELM, "$(NSAM)")
 	field(SCAN, "I/O Intr")
 }
