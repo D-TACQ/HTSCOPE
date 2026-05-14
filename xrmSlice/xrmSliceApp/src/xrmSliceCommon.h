@@ -31,10 +31,7 @@
 #define PS_XS_AI16_CH_RAW	"XS_AI16_CH_RAW"
 #define PS_XS_AI16_CH_EGU	"XS_AI16_CH_EGU"
 #define PS_XS_DI32_CH_RAW	"XS_DI32_CH_RAW"
-#define PS_XS_SP32_SP0		"XS_SP32_SP0"
-#define PS_XS_SP32_SP1		"XS_SP32_SP1"
-#define PS_XS_SP32_SP2		"XS_SP32_SP2"
-#define PS_XS_SP32_SP3		"XS_SP32_SP3"
+#define PS_XS_SP32_SP		"XS_SP32_SP"
 #define PS_XS_SP32_WRVS		"XS_SP32_WRVS"  // WR Vernier, seconds
 #define PS_XS_SP32_WRVT     	"XS_SP32_WRVT"  // WR Vernier, ticks
 #define PS_XS_SP32_WRUS     	"XS_SP32_WRUS"  // WR time, usec since epoch
@@ -76,10 +73,8 @@ protected:
 	int P_XS_AI16_CH_RAW;
 	int P_XS_AI16_CH_EGU;
 	int P_XS_DI32_CH_RAW;
-	int P_XS_SP32_SP0;
-	int P_XS_SP32_SP1;
-	int P_XS_SP32_SP2;
-	int P_XS_SP32_SP3;
+	int P_XS_SP32_SP;
+
 	int P_XS_SP32_WRVS;
 	int P_XS_SP32_WRVT;
 	int P_XS_SP32_WRUS;

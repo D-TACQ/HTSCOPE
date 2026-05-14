@@ -29,10 +29,7 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	createParam(PS_XS_AI16_CH_RAW,	asynParamInt16Array, &P_XS_AI16_CH_RAW);
 	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat32Array, &P_XS_AI16_CH_EGU);
 	createParam(PS_XS_DI32_CH_RAW,	asynParamInt32Array, &P_XS_DI32_CH_RAW);
-	createParam(PS_XS_SP32_SP0, 	asynParamInt32Array, &P_XS_SP32_SP0);
-	createParam(PS_XS_SP32_SP1, 	asynParamInt32Array, &P_XS_SP32_SP1);
-	createParam(PS_XS_SP32_SP2, 	asynParamInt32Array, &P_XS_SP32_SP2);
-	createParam(PS_XS_SP32_SP3, 	asynParamInt32Array, &P_XS_SP32_SP3);
+	createParam(PS_XS_SP32_SP, 	asynParamInt32Array, &P_XS_SP32_SP);
 	createParam(PS_XS_SP32_WRVS, 	asynParamInt32Array, &P_XS_SP32_WRVS);
 	createParam(PS_XS_SP32_WRVT, 	asynParamInt32Array, &P_XS_SP32_WRVT);
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64Array, &P_XS_SP32_WRUS);
@@ -112,11 +109,6 @@ void XrmSlicePM::task()
 	SamplePrams& sp = sample_prams;
 	bool vectors_checked = false;
 
-	/* SP is unusual as have multiple params in address 0. Check assumptions! */
-	assert(P_XS_SP32_SP0+1 == P_XS_SP32_SP1);
-	assert(P_XS_SP32_SP1+1 == P_XS_SP32_SP2);
-	assert(P_XS_SP32_SP2+1 == P_XS_SP32_SP3);
-
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s inside lock\n", FN);
 
@@ -174,7 +166,7 @@ void XrmSlicePM::task()
 			doCallbacksInt32Array((epicsInt32*)p_DI32[di], NDATA, P_XS_DI32_CH_RAW, di);
 		}
 		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
-			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, spad);
+			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP, spad);
 		}
 		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 
