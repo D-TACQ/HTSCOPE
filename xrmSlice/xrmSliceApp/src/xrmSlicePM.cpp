@@ -174,7 +174,7 @@ void XrmSlicePM::task()
 			doCallbacksInt32Array((epicsInt32*)p_DI32[di], NDATA, P_XS_DI32_CH_RAW, di);
 		}
 		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
-			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, 0);
+			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP0+spad, spad);
 		}
 		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 
