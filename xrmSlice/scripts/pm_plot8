@@ -7,7 +7,7 @@ UUT=${UUT:-acq2206_588}
 
 if [ "$EGU" != "NO" ]; then
 	EGU=${EGU:-:EGU}
-	PRINTN=10
+	PRINTN=5
 else
 	PRINTN=20
 fi

@@ -103,7 +103,7 @@ dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},CH={ix+1}")""")
+dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},di32={ix}")""")
 
         for sp in range(8):
             args.fp.write(f"""
