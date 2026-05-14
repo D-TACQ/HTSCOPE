@@ -22,7 +22,8 @@ int XrmSlicePM::verbose = ::getenv_default("XrmSlicePM_VERBOSE", 0);
 
 XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	XrmSliceCommon(portName, max_addr),
-	pm_raw(0), p_AI16(0), p_AI_EGU(0), p_DI32(0), p_SP32(0), pm_buf_len(0)
+	pm_raw(0), p_AI16(0), p_AI_EGU(0), p_DI32(0),
+	p_SP32(0), p_WRVS(0), p_WRVT(0), p_WRUS(0), pm_buf_len(0)
 {
 	asynStatus status;
 
@@ -97,9 +98,19 @@ bool XrmSlicePM::ready_to_slice() {
 			p_SP32[sp] = new epicsUInt32 [ndata];
 		}
 	}
+	(p_WRVS == 0) && (p_WRVS = new epicsUInt32 [ndata]);
+	(p_WRVT == 0) && (p_WRVT = new epicsUInt32 [ndata]);
+	(p_WRUS == 0) && (p_WRUS = new epicsUInt64 [ndata]);
 
 	return true;
 }
+
+
+#define SP0	0
+#define SP1	1
+#define SP2	2
+#define SP3	3
+
 
 #define SPAD_LIM 8        // nothing to see in higher order SPADs, don't waste time on them
 
@@ -131,7 +142,7 @@ void XrmSlicePM::task()
 		if (verbose) fprintf(stderr, "%s slice\n", FN);
 
 		for (int row = 1; row < sp.NSAM; ++row){
-			int outrow = row-1;
+			const int outrow = row-1;
 
 			epicsUInt32* psrc32 = pm_raw + (row * sp.SSB/sizeof(epicsUInt32));
 			epicsInt16* psrc16 = (epicsInt16*)psrc32;
@@ -152,6 +163,16 @@ void XrmSlicePM::task()
 				}
 			}
 		}
+
+		for (int row = 1; row < sp.NSAM; ++row){
+			const int outrow = row-1;
+			unsigned wrv = p_SP32[SP2][outrow];
+			unsigned wrs = p_SP32[SP3][outrow];
+
+			p_WRVS[outrow] = (wrv >> 28)&0x07;
+			p_WRVT[outrow] = wrv & 0x0fffffff;
+			p_WRUS[outrow] = getWrTs(wrs, wrv);
+		}
 		if (verbose) fprintf(stderr, "%s callbacks\n", FN);
 
 		const int NDATA = sp.NSAM-1;
@@ -168,6 +189,10 @@ void XrmSlicePM::task()
 		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
 			doCallbacksInt32Array((epicsInt32*)p_SP32[spad], NDATA, P_XS_SP32_SP, spad);
 		}
+		doCallbacksInt32Array((epicsInt32*)p_WRVS, NDATA, P_XS_SP32_WRVS, 0);
+		doCallbacksInt32Array((epicsInt32*)p_WRVT, NDATA, P_XS_SP32_WRVT, 0);
+		doCallbacksInt64Array((epicsInt64*)p_WRUS, NDATA, P_XS_SP32_WRUS, 0);
+
 		doCallbacksInt32Array((epicsInt32*)pm_raw, pm_buf_len, P_PM_RAW_INPUT, 0);
 
 		if (verbose) fprintf(stderr, "%s leaving lock()\n", FN);

@@ -24,6 +24,10 @@ protected:
 	epicsFloat32** p_AI_EGU;
 	epicsUInt32** p_DI32;
 	epicsUInt32** p_SP32;
+
+	epicsUInt32* p_WRVS;
+	epicsUInt32* p_WRVT;
+	epicsUInt64* p_WRUS;
 	size_t pm_buf_len;
 
 	bool wait_and_lock();
