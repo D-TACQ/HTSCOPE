@@ -16,6 +16,11 @@
 
 #define PS_HT_RAW_INPUT	"HT_RAW_INPUT"   /** single port==0 single addr=0 */
 
+#define PS_SOE_HLD_ENT_PV_ID    	"SOE_HLD_COL_PV_ID"
+#define PS_SOE_HLD_ENT_CLIDAT    	"SOE_HLD_COL_CLIDAT"
+#define PS_SOE_HLD_ENT_TS        	"SOE_HLD_COL_TS"
+#define PS_SOE_HLD_ENT_DATA_OFFSET 	"SOE_HLD_COL_DATA_OFFSET"
+
 class XrmSliceHT: public XrmSliceCommon {
 
 protected:
@@ -23,6 +28,11 @@ protected:
 
 	size_t ht_buf_len;
 	epicsUInt32* ht_raw;
+
+	int P_SOE_HLD_ENT_PV_ID;
+	int P_SOE_HLD_ENT_CLIDAT;
+	int P_SOE_HLD_ENT_TS;
+	int P_SOE_HLD_ENT_DATA_OFFSET;
 
 	virtual void task();
 	static void task_runner(void *drvPvt);

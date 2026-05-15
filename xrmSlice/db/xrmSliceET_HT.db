@@ -1,0 +1,34 @@
+# xrmSliceET_HT.db # call for every PORT
+# special fields for one HT ENTRY, all ADDR=0
+
+
+record(longin, "${HOST}:${UUT}:SOE:${ENTRY}:PV_ID")
+{
+	
+}
+record(aai, "${HOST}:${UUT}:SOE:${ENTRY}:WRVS")
+{
+	field(DTYP, "asynInt32ArrayIn")
+	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVS")
+	field(FTVL, "ULONG")
+	field(NELM, "1")
+	field(SCAN, "I/O Intr")
+}
+
+record(aai, "${HOST}:${UUT}:SOE:${ENTRY}:WRVT")
+{
+	field(DTYP, "asynInt32ArrayIn")
+	field(INP,  "@asyn($(PORT),0),$(TIMEOUT))XS_SP32_WRVT")
+	field(FTVL, "ULONG")
+	field(NELM, "1")
+	field(SCAN, "I/O Intr")
+}
+
+record(aai, "${HOST}:${UUT}:SOE:${ENTRY}:WRUS")
+{
+	field(DTYP, "asynInt64ArrayIn")
+	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRUS")
+	field(FTVL, "UINT64")
+	field(NELM, "1")
+	field(SCAN, "I/O Intr")
+}

@@ -23,6 +23,11 @@ XrmSliceHT::XrmSliceHT(const char *portName):
 {
 	asynStatus status;
 
+	createParam(PS_SOE_HLD_ENT_PV_ID, 	asynParamInt32, &P_SOE_HLD_ENT_PV_ID);
+	createParam(PS_SOE_HLD_ENT_CLIDAT, 	asynParamInt32, &P_SOE_HLD_ENT_CLIDAT);
+	createParam(PS_SOE_HLD_ENT_TS, 		asynParamInt32, &P_SOE_HLD_ENT_TS);
+	createParam(PS_SOE_HLD_ENT_DATA_OFFSET, asynParamInt32, &P_SOE_HLD_ENT_DATA_OFFSET);
+
 	createParam(PS_XS_AI16_CH_RAW,	asynParamInt32, &P_XS_AI16_CH_RAW);
 	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat64, &P_XS_AI16_CH_EGU);
 	createParam(PS_XS_DI32_CH_RAW,	asynParamInt32, &P_XS_DI32_CH_RAW);

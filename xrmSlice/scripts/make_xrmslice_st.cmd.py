@@ -103,7 +103,7 @@ dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},di32={ix}")""")
+dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},DI={ix}")""")
 
         for sp in range(8):
             args.fp.write(f"""
@@ -134,14 +134,21 @@ xrmSlice_HT_Configure("{SPORT}", {port_count})"""
         for ix in range(args.geometries[ii].AI_COUNT):
             ch = CHFMT.format(ix+1)
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
+dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ENTRY={ix},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ADDR={ix},CH={ix+1}")""")
+dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ENTRY={ix},ADDR={ix},DI={ix+1}")""")
 
         args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceSP_HT.db", "{hupc}")""")
+        for sp in range(8):
+            args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_HT.db", "{hupc},ENTRY={sp},ADDR={sp},SP={sp:02d}")""")
+
+        args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceET_HT.db", "{hupc}")""")
+
 
         
 def print_peer(args, ii, peer):

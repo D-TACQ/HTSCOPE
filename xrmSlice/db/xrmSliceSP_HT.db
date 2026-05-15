@@ -1,7 +1,7 @@
 # xrmSliceSP_HT.db # call for every PORT
 
 
-record(ai, "${HOST}:${UUT}:SOE:${ENTRY}:SP32:${CH}")
+record(ai, "${HOST}:${UUT}:SOE:${ENTRY}:SP32:${SP}")
 {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_SP32_SP")
@@ -10,3 +10,4 @@ record(ai, "${HOST}:${UUT}:SOE:${ENTRY}:SP32:${CH}")
     field(LOPR, "-32768")
     field(EGU,  "u32")
 }
+

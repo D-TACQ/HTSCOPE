@@ -1,6 +1,6 @@
 # xrmSliceDI_PM.db # call for every PORT, every ADDR (max 2)
 
-record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:DI32:${di32}")
+record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:DI32:${DI}")
 {
     field(DTYP, "asynInt32ArrayIn")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_DI32_CH_RAW")
