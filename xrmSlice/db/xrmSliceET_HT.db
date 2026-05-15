@@ -2,33 +2,38 @@
 # special fields for one HT ENTRY, all ADDR=0
 
 
-record(longin, "${HOST}:${UUT}:SOE:${ENTRY}:PV_ID")
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:PV_ID")
 {
-	
+	field(DTYP, "asynInt32")
+	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVS")
+	field(FTVL, "ULONG")
+	field(NELM, "1")
+	field(SCAN, "I/O Intr")	
 }
-record(aai, "${HOST}:${UUT}:SOE:${ENTRY}:WRVS")
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVS")
 {
-	field(DTYP, "asynInt32ArrayIn")
+	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVS")
 	field(FTVL, "ULONG")
 	field(NELM, "1")
 	field(SCAN, "I/O Intr")
+	field(EGU,  "s")
 }
 
-record(aai, "${HOST}:${UUT}:SOE:${ENTRY}:WRVT")
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVT")
 {
-	field(DTYP, "asynInt32ArrayIn")
+	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),0),$(TIMEOUT))XS_SP32_WRVT")
 	field(FTVL, "ULONG")
 	field(NELM, "1")
 	field(SCAN, "I/O Intr")
+	field(EGU,  "ticks")
 }
 
-record(aai, "${HOST}:${UUT}:SOE:${ENTRY}:WRUS")
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRUS")
 {
-	field(DTYP, "asynInt64ArrayIn")
+	field(DTYP, "asynInt64")
 	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRUS")
-	field(FTVL, "UINT64")
-	field(NELM, "1")
 	field(SCAN, "I/O Intr")
+	field(EGU,  "us")
 }

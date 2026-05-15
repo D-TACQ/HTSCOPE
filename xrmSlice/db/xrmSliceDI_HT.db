@@ -1,6 +1,6 @@
 # xrmSliceDI_HT.db # call for every PORT, every ADDR (max 2)
 
-record(mbbiDirect, "${HOST}:${UUT}:SOE:${ENTRY}:DI32:${DI}")
+record(mbbiDirect, "${HOST}:${UUT}:SOE:${ROW}:DI32:${DI}")
 {
     field(DTYP, "asynUInt32Digital")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_DI32_CH_RAW")
