@@ -38,12 +38,11 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	createParam(PS_PM_RAW_INPUT,	asynParamInt32Array,  &P_PM_RAW_INPUT);
 	fprintf(stderr, "%s final param: %s %d\n", FN, PS_PM_RAW_INPUT, P_PM_RAW_INPUT);
 
-
 	/* Create the thread that computes the waveforms in the background */
 	char* taskname = new char[32];
 	snprintf(taskname, 32, "%s_task", portName);
 	status = (asynStatus)(epicsThreadCreate(taskname,
-			epicsThreadPriorityHigh - nice,
+			epicsThreadPriorityMedium - nice,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)task_runner,
 			this) == NULL);

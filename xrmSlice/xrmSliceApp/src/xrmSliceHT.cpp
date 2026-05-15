@@ -6,6 +6,7 @@
  */
 
 #include "xrmSliceHT.h"
+#include "acq-util.h"
 
 static const char *driverName= __FILE__;
 #define DN	driverName
@@ -13,11 +14,15 @@ static const char *driverName= __FILE__;
 
 const int SOE_HLD_ROWS = 64;
 
+int XrmSliceHT::nice 	= ::getenv_default("XrmSliceHT_NICE", 10);
+
 XrmSliceHT::XrmSliceHT(const char *portName):
 	XrmSliceCommon(portName, SOE_HLD_ROWS),
 	ht_buf_len(0),
 	ht_raw(0)
 {
+	asynStatus status;
+
 	createParam(PS_XS_AI16_CH_RAW,	asynParamInt32, &P_XS_AI16_CH_RAW);
 	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat64, &P_XS_AI16_CH_EGU);
 	createParam(PS_XS_DI32_CH_RAW,	asynParamInt32, &P_XS_DI32_CH_RAW);
@@ -27,6 +32,19 @@ XrmSliceHT::XrmSliceHT(const char *portName):
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64, &P_XS_SP32_WRUS);
 
 	createParam(PS_HT_RAW_INPUT,	asynParamInt32Array,  &P_HT_RAW_INPUT);
+
+	/* Create the thread that computes the waveforms in the background */
+	char* taskname = new char[32];
+	snprintf(taskname, 32, "%s_task", portName);
+	status = (asynStatus)(epicsThreadCreate(taskname,
+			epicsThreadPriorityHigh - nice,
+			epicsThreadGetStackSize(epicsThreadStackMedium),
+			(EPICSTHREADFUNC)task_runner,
+			this) == NULL);
+	if (status) {
+		printf("%s:%s: epicsThreadCreate failure\n", DN, FN);
+		return;
+	}
 }
 
 

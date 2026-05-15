@@ -28,7 +28,7 @@ protected:
 	static void task_runner(void *drvPvt);
 
 	bool ready_to_slice();
-
+	static int nice;
 public:
 	XrmSliceHT(const char *portName);
 	virtual ~XrmSliceHT() {}
