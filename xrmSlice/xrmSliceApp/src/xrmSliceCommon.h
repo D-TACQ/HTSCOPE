@@ -37,15 +37,6 @@
 #define PS_XS_SP32_WRUS     	"XS_SP32_WRUS"  // WR time, usec since epoch
 
 
-#define SP0	0
-#define SP1	1
-#define SP2	2
-#define SP3	3
-
-
-#define SPAD_LIM 8        // nothing to see in higher order SPADs, don't waste time on them
-
-
 /* fix printf compiler warning */
 #ifdef __arm__
 #define FMTSZT "%u"

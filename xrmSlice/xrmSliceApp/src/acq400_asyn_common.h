@@ -33,6 +33,9 @@
 #define SP2	2
 #define SP3	3
 
+#define SPAD_LIM 8        // nothing to see in higher order SPADs, don't waste time on them
+
+
 typedef short AI16_t;
 typedef unsigned long DI32_t;
 typedef unsigned long DO32_t;
