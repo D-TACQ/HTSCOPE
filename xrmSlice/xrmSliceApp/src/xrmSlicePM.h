@@ -30,7 +30,6 @@ protected:
 	epicsUInt64* p_WRUS;
 	size_t pm_buf_len;
 
-	bool wait_and_lock();
 	bool ready_to_slice();
 	virtual void task();
 

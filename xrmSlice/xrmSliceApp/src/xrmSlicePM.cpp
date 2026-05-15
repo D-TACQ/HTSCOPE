@@ -53,11 +53,6 @@ XrmSlicePM::XrmSlicePM(const char *portName, int max_addr):
 	}
 }
 
-bool XrmSlicePM::wait_and_lock()  {
-	epicsEventWait(eventId);
-	lock();
-	return true;
-}
 
 bool XrmSlicePM::ready_to_slice() {
 	if (!pm_raw){
@@ -104,15 +99,6 @@ bool XrmSlicePM::ready_to_slice() {
 
 	return true;
 }
-
-
-#define SP0	0
-#define SP1	1
-#define SP2	2
-#define SP3	3
-
-
-#define SPAD_LIM 8        // nothing to see in higher order SPADs, don't waste time on them
 
 void XrmSlicePM::task()
 /**< slicing takes place here. */

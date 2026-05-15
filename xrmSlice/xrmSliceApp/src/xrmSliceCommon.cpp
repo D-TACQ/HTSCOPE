@@ -14,6 +14,12 @@ static const char *driverName= __FILE__;
 
 int XrmSliceCommon::verbose = ::getenv_default("XrmSliceCommon_VERBOSE", 0);
 
+bool XrmSliceCommon::wait_and_lock()  {
+	epicsEventWait(eventId);
+	lock();
+	return true;
+}
+
 XrmSliceCommon::XrmSliceCommon(const char* portName, int max_addr):
 	acq400_asynPortDriver(portName,
 	/* maxAddr */		max_addr,    /* number of elements */
@@ -155,7 +161,7 @@ asynStatus XrmSliceCommon::writeFloat32Array(
 
 	    if (function == P_XS_EOFF || function == P_XS_ESLO) {
 		lock();
-		if (verbose) fprintf(stderr, "%s function:%d:%s nelems:%u\n",
+		if (verbose) fprintf(stderr, "%s function:%d:%s nelems:" FMTSZT "\n",
 			FN, function,
 			    function==P_XS_EOFF? PS_XS_EOFF:
 			    function==P_XS_ESLO? PS_XS_ESLO: "unknown", nElements);

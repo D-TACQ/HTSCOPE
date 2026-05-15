@@ -21,9 +21,20 @@ class XrmSliceHT: public XrmSliceCommon {
 protected:
 	int P_HT_RAW_INPUT;
 
+	size_t ht_buf_len;
+	epicsUInt32* ht_raw;
+
+	virtual void task();
+	static void task_runner(void *drvPvt);
+
+	bool ready_to_slice();
+
 public:
 	XrmSliceHT(const char *portName);
 	virtual ~XrmSliceHT() {}
+
+	virtual asynStatus writeInt32Array(
+			asynUser *pasynUser, epicsInt32 *value, size_t nElements);
 };
 
 

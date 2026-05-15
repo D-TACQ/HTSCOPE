@@ -14,7 +14,9 @@ static const char *driverName= __FILE__;
 const int SOE_HLD_ROWS = 64;
 
 XrmSliceHT::XrmSliceHT(const char *portName):
-	XrmSliceCommon(portName, SOE_HLD_ROWS)
+	XrmSliceCommon(portName, SOE_HLD_ROWS),
+	ht_buf_len(0),
+	ht_raw(0)
 {
 	createParam(PS_XS_AI16_CH_RAW,	asynParamInt32, &P_XS_AI16_CH_RAW);
 	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat64, &P_XS_AI16_CH_EGU);
@@ -26,6 +28,86 @@ XrmSliceHT::XrmSliceHT(const char *portName):
 
 	createParam(PS_HT_RAW_INPUT,	asynParamInt32Array,  &P_HT_RAW_INPUT);
 }
+
+
+void XrmSliceHT::task_runner(void *drvPvt)
+{
+	((XrmSliceHT *)drvPvt)->task();
+}
+
+typedef epicsUInt32 * PU32;
+
+
+bool XrmSliceHT::ready_to_slice() {
+	if (!ht_raw){
+		fprintf(stderr, "%s WARNING: ht_raw not set\n", FN);
+		return false;
+	}
+	if (!sample_prams.isValid()){
+		fprintf(stderr, "%s WARNING: !sample_prams.isValid()\n", FN);
+		return false;
+	}
+
+	return true;
+
+}
+void XrmSliceHT::task()
+{
+	SamplePrams& sp = sample_prams;
+
+	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
+		if (verbose) fprintf(stderr, "%s inside lock\n", FN);
+
+		if (!ready_to_slice()){
+			continue;         // NO ACTION until buffer parameters are in place.
+		}
+
+		// decode new HT, do a lot of sips(, addr=ENTRY)
+	}
+}
+
+asynStatus XrmSliceHT::writeInt32Array(
+		asynUser *pasynUser, epicsInt32 *value, size_t nElements)
+{
+    int function = pasynUser->reason;
+    asynStatus status = asynSuccess;
+    const char *paramName;
+    int addr = 0;
+
+    getParamName(function, &paramName);
+    if (maxAddr > 1){
+	    status = pasynManager->getAddr(pasynUser, &addr);
+	    if(status!=asynSuccess) return status;
+    }
+
+    // Log the action
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s: Port %s, Param %s, nElements " FMTSZT "\n", FN,
+              portName, paramName, nElements);
+/*
+    fprintf(stderr, "%s: Port %s, Param %s, nElements %u\n", FN,
+	              portName, paramName, nElements);
+*/
+    if (function == P_HT_RAW_INPUT) {
+	lock();
+	if (ht_buf_len == 0){
+		ht_buf_len = nElements;
+	}
+	assert(ht_buf_len == nElements);
+	if (ht_raw == 0){
+		ht_raw = (PU32)value;
+	}
+	assert(ht_raw == (PU32)value);
+	unlock();
+	epicsEventSignal(eventId);
+    } else {
+        // Fall back to base class for standard parameters
+        status = XrmSliceCommon::writeInt32Array(pasynUser, value, nElements);
+    }
+
+    return status;
+}
+
 
 extern "C" {
 	/** EPICS iocsh callable function to call constructor for the testAsynPortDriver class.
