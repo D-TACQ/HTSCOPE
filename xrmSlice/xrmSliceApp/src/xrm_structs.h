@@ -93,6 +93,12 @@ struct SOE_HOLD_HEADER {
 	epicsUInt8  sp_count;           // number of SP (u32) in data
 };
 
+
+#define HT_HEADER_SIZE 24
+
+static_assert(HT_HEADER_SIZE == sizeof(SOE_HOLD_HEADER), "ERROR HT_HEADER_SIZE mismatch");
+
+
 const int SPAD0_SC = 0;                   // SPAD[0] is sample count (u32)
 const int SPAD1_TS = 1;                   // SPAD[1] is WR TS 3 bit seconds, 28 bit ticks
 

@@ -109,11 +109,12 @@ dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},di32={ix}")""")
             args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn},ADDR={sp},SP={sp:02d}")""")
 
-
+HT_HEADER_SIZE = 24
             
 def print_peer_ht(args, ii, peer, CHFMT):
     geo = args.geometries[ii]
-    port_count = int(os.getenv("XRMSLICE_HT_ROWS", 64))
+    HTROWS = port_count = int(os.getenv("XRMSLICE_HT_ROWS", 64))
+
     for HTROW in range(port_count):
         row = "{:02d}".format(HTROW)
         SPORT = f'XRM{ii}HT{row}'
@@ -123,6 +124,12 @@ def print_peer_ht(args, ii, peer, CHFMT):
         args.fp.write(f"""
 xrmSlice_HT_Configure("{SPORT}", {port_count})"""
         )
+
+        if HTROW == 0:
+                htbn = f"HT_BUF_NELM={(HTROWS*(HT_HEADER_SIZE+geo.SSB)+HT_HEADER_SIZE)//4}"
+                args.fp.write(f"""
+ dbLoadRecords("./db/xrmSlice_HT.db", "{hupc},ADDR=0,{htbn}")""")
+
 
         for ix in range(args.geometries[ii].AI_COUNT):
             ch = CHFMT.format(ix+1)

@@ -1,0 +1,12 @@
+# xrmSlice_HT.db : common init for HT
+
+
+record(aao, "${HOST}:${UUT}:SOE_HLD")
+{
+	field(DTYP, "asynInt32ArrayOut")
+	field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))HT_RAW_INPUT")
+	field(OMSL, "closed_loop")
+	field(DOL,  {pva: {pv:"${UUT}:SOE_HLD", "proc":"CPP"}})
+	field(FTVL, "LONG")
+	field(NELM, "$(HT_BUF_NELM)")
+}
