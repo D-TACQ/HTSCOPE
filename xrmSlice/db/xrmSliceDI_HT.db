@@ -5,7 +5,4 @@ record(mbbiDirect, "${HOST}:${UUT}:SOE:${ROW}:DI32:${DI}")
     field(DTYP, "asynUInt32Digital")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_DI32_CH_RAW")
     field(SCAN, "I/O Intr")
-    field(HOPR, "2147483648")
-    field(LOPR, "0")
-    field(EGU,  "bits")
 }

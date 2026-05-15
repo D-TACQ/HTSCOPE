@@ -23,10 +23,10 @@ bool XrmSliceCommon::wait_and_lock()  {
 XrmSliceCommon::XrmSliceCommon(const char* portName, int max_addr):
 	acq400_asynPortDriver(portName,
 	/* maxAddr */		max_addr,    /* number of elements */
-	/* Interface mask */    asynEnumMask|asynOctetMask|asynInt32Mask|asynInt64Mask|asynFloat64Mask|
+	/* Interface mask */    asynEnumMask|asynOctetMask|asynUInt32DigitalMask|asynInt32Mask|asynInt64Mask|asynFloat64Mask|
 				asynInt8ArrayMask|asynInt16ArrayMask|asynInt32ArrayMask|
 				asynFloat32ArrayMask|asynInt64ArrayMask|asynDrvUserMask,
-	/* Interrupt mask */	asynEnumMask|asynOctetMask|asynInt32Mask|asynInt64Mask|asynFloat64Mask|
+	/* Interrupt mask */	asynEnumMask|asynOctetMask|asynUInt32DigitalMask|asynInt32Mask|asynInt64Mask|asynFloat64Mask|
 				asynInt8ArrayMask|asynInt16ArrayMask|asynInt32ArrayMask|
 				asynFloat32ArrayMask|asynInt64ArrayMask,
 	/* asynFlags no block*/ 0,

@@ -140,8 +140,6 @@ dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
             args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ADDR={ix},DI={ix+1}")""")
 
-        args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_HT.db", "{hupc}")""")
         for sp in range(8):
             args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceSP_HT.db", "{hupc},ADDR={sp},SP={sp:02d}")""")

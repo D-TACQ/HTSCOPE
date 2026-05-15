@@ -6,16 +6,12 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:PV_ID")
 {
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVS")
-	field(FTVL, "ULONG")
-	field(NELM, "1")
 	field(SCAN, "I/O Intr")	
 }
 record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVS")
 {
 	field(DTYP, "asynInt32")
 	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVS")
-	field(FTVL, "ULONG")
-	field(NELM, "1")
 	field(SCAN, "I/O Intr")
 	field(EGU,  "s")
 }
@@ -23,9 +19,7 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVS")
 record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVT")
 {
 	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),0),$(TIMEOUT))XS_SP32_WRVT")
-	field(FTVL, "ULONG")
-	field(NELM, "1")
+	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVT")
 	field(SCAN, "I/O Intr")
 	field(EGU,  "ticks")
 }
