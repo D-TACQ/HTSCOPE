@@ -131,9 +131,15 @@ xrmSlice_HT_Configure("{SPORT}", {port_count})"""
  dbLoadRecords("./db/xrmSlice_HT.db", "{hupc},ADDR=0,{htbn}")""")
 
 
-        for ix in range(args.geometries[ii].AI_COUNT):
-            ch = CHFMT.format(ix+1)
+# save time (well, st.cmd length at least) using expansion, if available
+        expanded_ai_db = f"./db/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
+        if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
+dbLoadRecords("{expanded_ai_db}", "{hupc}")""")
+        else:
+            for ix in range(args.geometries[ii].AI_COUNT):
+                ch = CHFMT.format(ix+1)
+                args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):

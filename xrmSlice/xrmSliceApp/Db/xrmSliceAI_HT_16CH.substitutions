@@ -1,0 +1,26 @@
+file "xrmSliceAI_HT.template"
+{
+#Python 3.14.4 (main, Apr 16 2026, 00:00:00) [GCC 15.2.1 20260123 (Red Hat 15.2.1-7)] on linux
+#Type "help", "copyright", "credits" or "license" for more information.
+#>> for addr in range (0,16):
+#...     print(f"        {{ {addr+1:02d}, {addr} }}")
+#...     
+pattern { CH, ADDR }
+        { 01, 0 }
+        { 02, 1 }
+        { 03, 2 }
+        { 04, 3 }
+        { 05, 4 }
+        { 06, 5 }
+        { 07, 6 }
+        { 08, 7 }
+        { 09, 8 }
+        { 10, 9 }
+        { 11, 10 }
+        { 12, 11 }
+        { 13, 12 }
+        { 14, 13 }
+        { 15, 14 }
+        { 16, 15 }
+}
+ 

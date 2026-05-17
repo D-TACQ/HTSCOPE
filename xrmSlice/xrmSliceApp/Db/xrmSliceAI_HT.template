@@ -1,0 +1,22 @@
+# xrmSliceAI_HT.db : call for every PORT, every ADDR (CH)
+
+record(ai, "${HOST}:${UUT}:SOE:${ROW}:CH:${CH}")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_AI16_CH_RAW")
+    field(SCAN, "I/O Intr")
+    field(HOPR, "32767")
+    field(LOPR, "-32768")
+    field(EGU,  "codes")
+}
+
+record(ai, "${HOST}:${UUT}:SOE:${ROW}:CH:${CH}:EGU")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_AI16_CH_EGU")
+    field(SCAN, "I/O Intr")
+    field(HOPR, "10")
+    field(LOPR, "-10")
+    field(EGU,  "V")
+}
+

@@ -30,3 +30,6 @@ O.*/
 .*.swp
 .DS_Store
 set_slice_env
+db/xrmSliceAI_HT_16CH.db
+db/xrmSliceAI_HT_32CH.db
+
