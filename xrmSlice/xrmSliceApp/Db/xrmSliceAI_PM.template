@@ -1,0 +1,25 @@
+# xrmSliceAI_PM.db # call for every PORT, every ADDR (CH)
+
+record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:CH:${CH}")
+{
+    field(DTYP, "asynInt16ArrayIn")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_AI16_CH_RAW")
+    field(FTVL, "SHORT")
+    field(NELM, "${NSAM}")
+    field(SCAN, "I/O Intr")
+    field(HOPR, "32767")
+    field(LOPR, "-32768")
+    field(EGU,  "codes")
+}
+
+record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:CH:${CH}:EGU")
+{
+    field(DTYP, "asynFloat32ArrayIn")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_AI16_CH_EGU")
+    field(FTVL, "FLOAT")
+    field(NELM, "${NSAM}")
+    field(SCAN, "I/O Intr")
+    field(HOPR, "10")
+    field(LOPR, "-10")
+    field(EGU,  "V")
+}

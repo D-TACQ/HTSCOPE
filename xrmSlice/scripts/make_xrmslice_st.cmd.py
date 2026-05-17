@@ -96,9 +96,15 @@ dbLoadRecords("./db/xrmSlice_PM.db", "{hupc},{pmbn},ADDR=0,NSAM={geo.NSAM-1}")""
 
 # slices
         hupcn = f"{hupc},NSAM={geo.NSAM-1}"             # index from RAW[1], skip ES
-        for ix in range(args.geometries[ii].AI_COUNT):
-            ch = CHFMT.format(ix+1)
+
+        expanded_ai_db = f"./db/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db"
+        if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
+dbLoadRecords("{expanded_ai_db}", "{hupcn}")""")
+        else:
+            for ix in range(args.geometries[ii].AI_COUNT):
+                ch = CHFMT.format(ix+1)
+                args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):

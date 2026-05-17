@@ -17,6 +17,15 @@ DB +=  xrmSliceAI_HT_16CH.db
 xrmSliceAI_HT_16CH_TEMPLATE = xrmSliceAI_HT.template
 xrmSliceAI_HT_16CH_SUBSTITUTIONS = xrmSliceAI_HT_16CH.substitutions
 
+
+DB +=  xrmSliceAI_PM_32CH.db
+xrmSliceAI_PM_32CH_TEMPLATE = xrmSliceAI_PM.template
+xrmSliceAI_PM_32CH_SUBSTITUTIONS = xrmSliceAI_PM_32CH.substitutions
+DB +=  xrmSliceAI_PM_16CH.db
+xrmSliceAI_PM_16CH_TEMPLATE = xrmSliceAI_PM.template
+xrmSliceAI_PM_16CH_SUBSTITUTIONS = xrmSliceAI_PM_16CH.substitutions
+
+
 # If <anyname>.db template is not named <anyname>*.template add
 # <anyname>_TEMPLATE = <templatename>
 
