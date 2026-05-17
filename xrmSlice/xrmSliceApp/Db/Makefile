@@ -7,7 +7,7 @@ include $(TOP)/configure/CONFIG
 #DB += circle.db
 #DB += dbExample1.db
 #DB += dbExample2.db
-#DB += xrmSliceVersion.db
+DB += xrmSliceVersion.db
 #DB += dbSubExample.db
 #DB += user.substitutions
 DB +=  xrmSliceAI_HT_32CH.db
