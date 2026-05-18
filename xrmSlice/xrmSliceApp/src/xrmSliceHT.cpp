@@ -106,7 +106,7 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 		epicsUInt32* p_SP32 = psrc32+sp.SP_INDEX;
 
 		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
-			sliceHT->sip(spad, P_XS_SP32_SP, p_SP32[spad]);
+			sliceHT->sip(spad, P_XS_SP32_SP, (epicsInt64)p_SP32[spad]);
 		}
 
 		unsigned wrv = p_SP32[SP2];
