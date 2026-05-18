@@ -92,6 +92,10 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 			const epicsInt16 raw = psrc16[ai];
 			double egu = (double)raw*eslo[ai] + eoff[ai];
 
+			if (verbose > 1 && ai == 0){
+				fprintf(stderr, "%s:%s: %d raw:%04x egu:%.3f eoff:%.3f eslo:%.3f\n",
+						DN, FN, ai, raw, egu, eoff[ai], eslo[ai]);
+			}
 			sliceHT->sip(ai, P_XS_AI16_CH_RAW, raw);
 			sliceHT->sfp(ai, P_XS_AI16_CH_EGU, egu);
 		}
@@ -108,9 +112,9 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 		unsigned wrv = p_SP32[SP2];
 		unsigned wrs = p_SP32[SP3];
 
-		sip(0, P_XS_SP32_WRVS, (wrv >> 28)&0x07);
-		sip(0, P_XS_SP32_WRVT, wrv & 0x0fffffff);
-		sip(0, P_XS_SP32_WRUS, getWrTs(wrs, wrv));
+		sliceHT->sip(0, P_XS_SP32_WRVS, (wrv >> 28)&0x07);
+		sliceHT->sip(0, P_XS_SP32_WRVT, wrv & 0x0fffffff);
+		sliceHT->sip(0, P_XS_SP32_WRUS, getWrTs(wrs, wrv));
 
 		sliceHT->callParamCallbacks();
 	}else{
