@@ -16,3 +16,19 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:CLIDAT")
     field(EGU,  "u32")
 }
 
+
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:TS")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_ENT_TS")
+    field(SCAN, "I/O Intr")
+    field(EGU,  "u32")
+}
+
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:DATA_OFFSET")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_ENT_DATA_OFFSET")
+    field(SCAN, "I/O Intr")
+    field(EGU,  "u32")
+}
