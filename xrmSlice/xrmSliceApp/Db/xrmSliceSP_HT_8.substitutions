@@ -5,7 +5,7 @@ file "xrmSliceSP_HT.template"
 #>> for addr in range (0,8):
 #...     print(f"        {{ {addr:02d}, {addr} }}")
 #...     
-pattern { CH, ADDR }
+pattern { SP, ADDR }
         { 00, 0 }
         { 01, 1 }
         { 02, 2 }
