@@ -12,14 +12,13 @@ static const char *driverName= __FILE__;
 #define DN	driverName
 #define FN	__FUNCTION__
 
-const int SOE_HLD_ROWS = 64;
-
 int XrmSliceHT::nice 	= ::getenv_default("XrmSliceHT_NICE", 10);
+std::vector<XrmSliceHT*> XrmSliceHT::rowHandlers;
 
 XrmSliceHT::XrmSliceHT(const char *portName):
 	XrmSliceCommon(portName, SOE_HLD_ROWS),
 	ht_buf_len(0),
-	ht_raw(0)
+	ht_data(0)
 {
 	asynStatus status;
 
@@ -38,17 +37,18 @@ XrmSliceHT::XrmSliceHT(const char *portName):
 
 	createParam(PS_HT_RAW_INPUT,	asynParamInt32Array,  &P_HT_RAW_INPUT);
 
+	if (rowHandlers.size() == 0){
 	/* Create the thread that computes the waveforms in the background */
-	char* taskname = new char[32];
-	snprintf(taskname, 32, "%s_task", portName);
-	status = (asynStatus)(epicsThreadCreate(taskname,
+		char* taskname = new char[32];
+		snprintf(taskname, 32, "%s_task", portName);
+		status = (asynStatus)(epicsThreadCreate(taskname,
 			epicsThreadPriorityHigh - nice,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)task_runner,
 			this) == NULL);
-	if (status) {
-		printf("%s:%s: epicsThreadCreate failure\n", DN, FN);
-		return;
+		if (status) {
+			printf("%s:%s: epicsThreadCreate failure\n", DN, FN);
+		}
 	}
 }
 
@@ -62,7 +62,7 @@ typedef epicsUInt32 * PU32;
 
 
 bool XrmSliceHT::ready_to_slice() {
-	if (!ht_raw){
+	if (!ht_data){
 		fprintf(stderr, "%s WARNING: ht_raw not set\n", FN);
 		return false;
 	}
@@ -74,6 +74,50 @@ bool XrmSliceHT::ready_to_slice() {
 	return true;
 
 }
+
+void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* sample)
+{
+	if (verbose) fprintf(stderr, "%s:%s:" FMTSZT " pv:%d sample:%p\n", DN, FN, row, header->pv_id, sample);
+	SamplePrams& sp = sample_prams;
+
+	if (row < rowHandlers.size()){
+		XrmSliceHT* sliceHT = rowHandlers[row];
+		sliceHT->sip(0, P_SOE_HLD_ENT_PV_ID, header->pv_id);
+		// @@todo now do the rest
+
+		epicsUInt32* psrc32 = sample + (row * sp.SSB/sizeof(epicsUInt32));
+		epicsInt16* psrc16 = (epicsInt16*)psrc32;
+
+		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
+			const epicsInt16 raw = psrc16[ai];
+			double egu = (double)raw*eslo[ai] + eoff[ai];
+
+			sliceHT->sip(ai, P_XS_AI16_CH_RAW, raw);
+			sliceHT->sfp(ai, P_XS_AI16_CH_EGU, egu);
+		}
+		for (int di = 0; di < sp.DI_COUNT; ++di){
+			sliceHT->sip(di, P_XS_DI32_CH_RAW, psrc32[sp.DI_INDEX+di]);
+		}
+
+		epicsUInt32* p_SP32 = psrc32+sp.SP_INDEX;
+
+		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
+			sliceHT->sip(spad, P_XS_SP32_SP, p_SP32[spad]);
+		}
+
+		unsigned wrv = p_SP32[SP2];
+		unsigned wrs = p_SP32[SP3];
+
+		sip(0, P_XS_SP32_WRVS, (wrv >> 28)&0x07);
+		sip(0, P_XS_SP32_WRVT, wrv & 0x0fffffff);
+		sip(0, P_XS_SP32_WRUS, getWrTs(wrs, wrv));
+
+		sliceHT->callParamCallbacks();
+	}else{
+		fprintf(stderr, "%s::%s WARNING: row " FMTSZT " > available handlers " FMTSZT "\n",
+				DN, FN, row, rowHandlers.size());
+	}
+}
 void XrmSliceHT::task()
 {
 	SamplePrams& sp = sample_prams;
@@ -84,9 +128,14 @@ void XrmSliceHT::task()
 		if (!ready_to_slice()){
 			continue;         // NO ACTION until buffer parameters are in place.
 		}
-		if (verbose) fprintf(stderr, "%s::%s :4d ready to slice len:%u buf:%p\n",
-					DN, FN, ii, ht_buf_len, ht_raw);
+		if (verbose) fprintf(stderr, "%s::%s:%4d ready to slice len: " FMTSZT " buf:%p\n",
+					DN, FN, ii, ht_buf_len, ht_data);
 		// decode new HT, do a lot of sips(, addr=ENTRY)
+
+		SOE_HOLD_HEADER* header = (SOE_HOLD_HEADER*)ht_data;
+		for (size_t row = 0; header->pv_id != 0; ++row, ++header){
+			ht_slice(row, header, ht_data+header->data_offset);
+		}
 	}
 }
 
@@ -118,10 +167,10 @@ asynStatus XrmSliceHT::writeInt32Array(
 		ht_buf_len = nElements;
 	}
 	assert(ht_buf_len == nElements);
-	if (ht_raw == 0){
-		ht_raw = (PU32)value;
+	if (ht_data == 0){
+		ht_data = (PU32)value;
 	}
-	assert(ht_raw == (PU32)value);
+	assert(ht_data == (PU32)value);
 	unlock();
 	epicsEventSignal(eventId);
     } else {
@@ -133,6 +182,26 @@ asynStatus XrmSliceHT::writeInt32Array(
 }
 
 
+
+bool XrmSliceHT::exists(const char* portName)
+{
+	for (auto pht: rowHandlers){
+		if (strcmp(portName, pht->getPortName()) == 0){
+			return true;
+		}
+	}
+	return false;
+}
+
+XrmSliceHT* XrmSliceHT::factory(const char* portName)
+{
+	assert(!exists(portName));
+
+	XrmSliceHT* current = new XrmSliceHT(portName);
+	rowHandlers.push_back(current);
+	return current;
+}
+
 extern "C" {
 	/** EPICS iocsh callable function to call constructor for the testAsynPortDriver class.
 	  * \param[in] portName The name of the asyn port driver to be created.
@@ -141,7 +210,7 @@ extern "C" {
 	{
 		printf("%s:%s R1001 %s\n", DN, FN, portName);
 
-		new XrmSliceHT(portName);
+		XrmSliceHT::factory(portName);
 		return 0;
 	}
 

@@ -19,6 +19,7 @@ class XrmSlicePM: public XrmSliceCommon {
 
 protected:
 	int P_PM_RAW_INPUT;
+
 	epicsUInt32* pm_raw;
 	epicsInt16** p_AI16;
 	epicsFloat32** p_AI_EGU;

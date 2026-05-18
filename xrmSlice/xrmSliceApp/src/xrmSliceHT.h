@@ -13,13 +13,14 @@
 #define XRMSLICE_XRMSLICEAPP_SRC_XRMSLICEHT_H_
 
 #include "xrmSliceCommon.h"
+#include "xrm_structs.h"
 
 #define PS_HT_RAW_INPUT	"HT_RAW_INPUT"   /** single port==0 single addr=0 */
 
-#define PS_SOE_HLD_ENT_PV_ID    	"SOE_HLD_COL_PV_ID"
-#define PS_SOE_HLD_ENT_CLIDAT    	"SOE_HLD_COL_CLIDAT"
-#define PS_SOE_HLD_ENT_TS        	"SOE_HLD_COL_TS"
-#define PS_SOE_HLD_ENT_DATA_OFFSET 	"SOE_HLD_COL_DATA_OFFSET"
+#define PS_SOE_HLD_ENT_PV_ID    	"SOE_HLD_ENT_PV_ID"
+#define PS_SOE_HLD_ENT_CLIDAT    	"SOE_HLD_ENT_CLIDAT"
+#define PS_SOE_HLD_ENT_TS        	"SOE_HLD_ENT_TS"
+#define PS_SOE_HLD_ENT_DATA_OFFSET 	"SOE_HLD_ENT_DATA_OFFSET"
 
 class XrmSliceHT: public XrmSliceCommon {
 
@@ -27,7 +28,7 @@ protected:
 	int P_HT_RAW_INPUT;
 
 	size_t ht_buf_len;
-	epicsUInt32* ht_raw;
+	epicsUInt32* ht_data;
 
 	int P_SOE_HLD_ENT_PV_ID;
 	int P_SOE_HLD_ENT_CLIDAT;
@@ -38,9 +39,18 @@ protected:
 	static void task_runner(void *drvPvt);
 
 	bool ready_to_slice();
+
+	void ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* sample);
+	/** slice a single row of the ht. runs in lock() context */
+
 	static int nice;
-public:
+
+	static std::vector<XrmSliceHT*> rowHandlers;
 	XrmSliceHT(const char *portName);
+	static bool exists(const char* portName);
+public:
+	static XrmSliceHT* factory(const char* portName);
+
 	virtual ~XrmSliceHT() {}
 
 	virtual asynStatus writeInt32Array(

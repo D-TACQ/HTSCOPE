@@ -22,6 +22,7 @@ protected:
 	asynStatus sip(int addr, int pnum, int pram);
 	asynStatus sip(int addr, int pnum, unsigned pram);
 	asynStatus sip(int addr, int pnum, epicsInt64 pram);
+	asynStatus sfp(int addr, int pnum, double pram);
 
 	asynStatus gsp(int pnum, int maxchar, char* str);
 	asynStatus ssp(int pnum, const char* str);
@@ -53,6 +54,9 @@ protected:
 		void newData(int mrl);
 	};
 	int mrl_param;                    // MUST be explicitly set by client ::writeInt32()
+	const char* getPortName() const {
+		return portName;
+	}
 public:
 	acq400_asynPortDriver(const char *portName, int maxAddr, int interfaceMask, int interruptMask,
 			int asynFlags, int autoConnect, int priority, int stackSize);
