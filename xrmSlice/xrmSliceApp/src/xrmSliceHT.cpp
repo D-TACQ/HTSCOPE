@@ -117,6 +117,9 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 		sliceHT->sip(0, P_XS_SP32_WRUS, getWrTs(wrs, wrv));
 
 		sliceHT->callParamCallbacks();
+		for (int ai = 1; ai < sp.AI_COUNT; ++ai){
+			sliceHT->callParamCallbacks(ai);
+		}
 	}else{
 		fprintf(stderr, "%s::%s WARNING: row " FMTSZT " > available handlers " FMTSZT "\n",
 				DN, FN, row, rowHandlers.size());
