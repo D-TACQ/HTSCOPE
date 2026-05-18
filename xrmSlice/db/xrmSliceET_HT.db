@@ -18,7 +18,7 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVT")
 	field(EGU,  "ticks")
 }
 
-record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRUS")
+record(int64in, "${HOST}:${UUT}:SOE:${ROW}:WRUS")
 {
 	field(DTYP, "asynInt64")
 	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRUS")
