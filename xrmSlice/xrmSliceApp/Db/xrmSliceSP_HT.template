@@ -1,7 +1,7 @@
 
 # xrmSliceSP_HT.template
 
-record(ai, "${HOST}:${UUT}:SOE:${ROW}:SP32:${SP}")
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:SP32:${SP}")
 {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_SP32_SP")
