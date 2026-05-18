@@ -13,7 +13,7 @@ record(ai, "${HOST}:${UUT}:SOE:${ROW}:CH:${CH}")
 
 record(ai, "${HOST}:${UUT}:SOE:${ROW}:CH:${CH}:EGU")
 {
-    field(DTYP, "asynInt32")
+    field(DTYP, "asynFloat64")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_AI16_CH_EGU")
     field(SCAN, "I/O Intr")
     field(HOPR, "10")
