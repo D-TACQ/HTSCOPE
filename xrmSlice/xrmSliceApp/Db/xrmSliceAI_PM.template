@@ -1,4 +1,5 @@
-# xrmSliceAI_PM.db # call for every PORT, every ADDR (CH)
+
+# xrmSliceAI_PM.template
 
 record(waveform, "${HOST}:${UUT}:PM:${CYCLE}:CH:${CH}")
 {

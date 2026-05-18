@@ -1,0 +1,18 @@
+file "xrmSliceSP_HT.template"
+{
+#Python 3.14.4 (main, Apr 16 2026, 00:00:00) [GCC 15.2.1 20260123 (Red Hat 15.2.1-7)] on linux
+#Type "help", "copyright", "credits" or "license" for more information.
+#>> for addr in range (0,8):
+#...     print(f"        {{ {addr:02d}, {addr} }}")
+#...     
+pattern { CH, ADDR }
+        { 00, 0 }
+        { 01, 1 }
+        { 02, 2 }
+        { 03, 3 }
+        { 04, 4 }
+        { 05, 5 }
+        { 06, 6 }
+        { 07, 7 }
+}
+ 

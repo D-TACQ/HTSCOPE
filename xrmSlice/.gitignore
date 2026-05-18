@@ -34,4 +34,7 @@ db/xrmSliceAI_PM_16CH.db
 db/xrmSliceAI_PM_32CH.db
 db/xrmSliceAI_HT_16CH.db
 db/xrmSliceAI_HT_32CH.db
+db/xrmSliceSP_HT_8.db
+db/xrmSliceSP_PM_8.db
+
 

@@ -1,4 +1,5 @@
-# xrmSliceAI_HT.db : call for every PORT, every ADDR (CH)
+
+# xrmSliceAI_HT.template
 
 record(ai, "${HOST}:${UUT}:SOE:${ROW}:CH:${CH}")
 {

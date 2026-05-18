@@ -1,0 +1,11 @@
+
+# xrmSliceSP_PM.template
+
+record(aai, "${HOST}:${UUT}:PM:${CYCLE}:SP32:${SP}")
+{
+	field(DTYP, "asynInt32ArrayIn")
+	field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))XS_SP32_SP")
+	field(FTVL, "ULONG")
+	field(NELM, "$(NSAM)")
+	field(SCAN, "I/O Intr")
+}

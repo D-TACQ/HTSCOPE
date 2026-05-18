@@ -1,4 +1,4 @@
-file "xrmSliceAI_HT.template"
+file "xrmSliceAI_PM.template"
 {
 #Python 3.14.4 (main, Apr 16 2026, 00:00:00) [GCC 15.2.1 20260123 (Red Hat 15.2.1-7)] on linux
 #Type "help", "copyright", "credits" or "license" for more information.

@@ -111,8 +111,12 @@ dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
             args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},DI={ix}")""")
 
-        for sp in range(8):
+        if args.geometries[ii].SP_COUNT >= 8:
             args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_PM_8.db", "{hupcn}")""")
+        else:
+            for sp in range(args.geometries[ii].SP_COUNT):
+                args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn},ADDR={sp},SP={sp:02d}")""")
 
 HT_HEADER_SIZE = 24
@@ -152,8 +156,12 @@ dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
             args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ADDR={ix},DI={ix+1}")""")
 
-        for sp in range(8):
+        if args.geometries[ii].SP_COUNT >= 8:
             args.fp.write(f"""
+dbLoadRecords("./db/xrmSliceSP_HT_8.db", "{hupc}")""")
+        else:
+            for sp in range(args.geometries[ii].SP_COUNT):
+                args.fp.write(f"""
 dbLoadRecords("./db/xrmSliceSP_HT.db", "{hupc},ADDR={sp},SP={sp:02d}")""")
 
         args.fp.write(f"""
