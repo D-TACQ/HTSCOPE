@@ -140,7 +140,9 @@ xrmSlice_HT_Configure("{SPORT}", {port_count})"""
                 args.fp.write(f"""
  dbLoadRecords("./db/xrmSlice_HT.db", "{hupc},ADDR=0,{htbn}")""")
 
-
+        args.fp.write(f"""
+ dbLoadRecords("./db/xrmSlice_HT_HDR.db", "{hupc},ADDR=0")""")
+ 
 # save time (well, st.cmd length at least) using expansion, if available
         expanded_ai_db = f"./db/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):

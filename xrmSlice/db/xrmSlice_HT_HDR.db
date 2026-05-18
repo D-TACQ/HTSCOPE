@@ -1,0 +1,18 @@
+# xrmSlice_HT.db : PV's for each field in SOE_HOLD_HEADER
+
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:PV_ID")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_ENT_PV_ID")
+    field(SCAN, "I/O Intr")
+    field(EGU,  "u32")
+}
+
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:CLIDAT")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_ENT_CLIDAT")
+    field(SCAN, "I/O Intr")
+    field(EGU,  "u32")
+}
+

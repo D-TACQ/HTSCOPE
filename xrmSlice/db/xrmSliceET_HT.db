@@ -2,12 +2,6 @@
 # special fields for one HT ENTRY, all ADDR=0
 
 
-record(longin, "${HOST}:${UUT}:SOE:${ROW}:PV_ID")
-{
-	field(DTYP, "asynInt32")
-	field(INP,  "@asyn($(PORT),0,$(TIMEOUT))XS_SP32_WRVS")
-	field(SCAN, "I/O Intr")	
-}
 record(longin, "${HOST}:${UUT}:SOE:${ROW}:WRVS")
 {
 	field(DTYP, "asynInt32")
