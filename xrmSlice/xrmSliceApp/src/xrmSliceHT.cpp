@@ -79,12 +79,13 @@ void XrmSliceHT::task()
 	SamplePrams& sp = sample_prams;
 
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
-		if (verbose) fprintf(stderr, "%s inside lock\n", FN);
+		if (verbose) fprintf(stderr, "%s::%s inside lock\n", DN, FN);
 
 		if (!ready_to_slice()){
 			continue;         // NO ACTION until buffer parameters are in place.
 		}
-
+		if (verbose) fprintf(stderr, "%s::%s :4d ready to slice len:%u buf:%p\n",
+					DN, FN, ii, ht_buf_len, ht_raw);
 		// decode new HT, do a lot of sips(, addr=ENTRY)
 	}
 }
