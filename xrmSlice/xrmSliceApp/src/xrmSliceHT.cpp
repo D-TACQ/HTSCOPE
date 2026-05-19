@@ -85,7 +85,7 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 		sliceHT->sip(0, P_SOE_HLD_ENT_PV_ID, header->pv_id);
 		// @@todo now do the rest
 
-		epicsUInt32* psrc32 = sample + (row * sp.SSB/sizeof(epicsUInt32));
+		epicsUInt32* psrc32 = sample;
 		epicsInt16* psrc16 = (epicsInt16*)psrc32;
 
 		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
