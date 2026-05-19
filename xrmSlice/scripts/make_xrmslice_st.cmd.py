@@ -156,7 +156,7 @@ dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ADDR={ix},DI={ix+1}")""")
+dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ADDR={ix},DI={ix}")""")
 
         if args.geometries[ii].SP_COUNT >= 8:
             args.fp.write(f"""
