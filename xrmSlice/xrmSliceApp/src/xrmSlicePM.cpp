@@ -124,7 +124,8 @@ void XrmSlicePM::task()
 			}
 			vectors_checked = true;
 		}
-		if (verbose) fprintf(stderr, "%s slice\n", FN);
+		if (verbose) fprintf(stderr, "%s slice NSAM:%d AI_COUNT:%d DI_COUNT:%d SP_COUNT:%d\n",
+				FN, sp.NSAM, sp.AI_COUNT, sp.DI_COUNT, sp.SP_COUNT);
 
 		for (int row = 1; row < sp.NSAM; ++row){
 			const int outrow = row-1;
@@ -148,6 +149,8 @@ void XrmSlicePM::task()
 				}
 			}
 		}
+
+		assert(p_SP32 != 0);
 
 		for (int row = 1; row < sp.NSAM; ++row){
 			const int outrow = row-1;

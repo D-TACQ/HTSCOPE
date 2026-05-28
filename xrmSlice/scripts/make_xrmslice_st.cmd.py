@@ -177,13 +177,9 @@ def print_peer(args, ii, peer):
     print(f'smpl: {args.geometries[ii]}')
      
     SPORT = f'XRM{ii}'
-    args.fp.write(f"""    
-# Turn on asynTraceFlow and asynTraceError for global trace, i.e. no connected asynUser.
-#asynSetTraceMask("", 0, 17)
-drvAsynIPPortConfigure("{SPORT}", "{peer.ip}")
-dbLoadRecords("db/asynRecord.db", "P={args.host}:,R={SPORT},PORT={SPORT},ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
-epicsEnvSet("STREAM_PROTOCOL_PATH","./protocols")
-dbLoadRecords("./db/xrmSlice.db", "HOST={args.host},UUT={peer.name}")
+    args.fp.write(f"""
+# peer: {peer.name} {peer.ip}
+# smpl: {args.geometries[ii]}
 """)
 
     if args.geometries[ii].AI_COUNT > 99:
