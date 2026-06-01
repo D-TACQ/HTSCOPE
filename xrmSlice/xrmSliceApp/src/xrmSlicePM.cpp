@@ -166,9 +166,10 @@ void XrmSlicePM::task()
 		const int NDATA = sp.NSAM-1;
 
 		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
-			if (verbose > 1) fprintf(stderr, "%s P:%d A:%d\n", FN, P_XS_AI16_CH_RAW, ai);
+			if (verbose > 1) fprintf(stderr, "%s PN:%s PR:%d AI:%d NDATA:%d\n",
+					FN, portName, P_XS_AI16_CH_RAW, ai, NDATA);
 			doCallbacksInt16Array(p_AI16[ai], NDATA, P_XS_AI16_CH_RAW, ai);
-			if (verbose > 1) fprintf(stderr, "%s P:%d A:%d\n", FN, P_XS_AI16_CH_EGU, ai);
+			//if (verbose > 1) fprintf(stderr, "%s P:%d A:%d\n", FN, P_XS_AI16_CH_EGU, ai);
 			doCallbacksFloat32Array(p_AI_EGU[ai], NDATA, P_XS_AI16_CH_EGU, ai);
 		}
 		for (int di = 0; di < sp.DI_COUNT; ++di){
@@ -229,6 +230,26 @@ asynStatus XrmSlicePM::writeInt32Array(
 		pm_raw = (PU32)value;
 	}
 	assert(pm_raw == (PU32)value);
+
+	const int NORD =  sample_prams.NSAM*sample_prams.SSB/sizeof(unsigned);
+	if (nElements != NORD){
+		fprintf(stderr, "%s:%s: Port %s, Param %s, nElements " FMTSZT ", != NORD %d\n",
+				DN, FN, portName, paramName, nElements, NORD);
+	}
+	if (verbose) {
+		fprintf(stderr, "%s:%s: Port %s, Param %s, nElements " FMTSZT ", pm_raw:%p\n",
+			DN, FN, portName, paramName, nElements, pm_raw);
+		if (verbose > 1){
+			for (int ii = 0; ii < 8; ++ii){
+				fprintf(stderr, "%d,", pm_raw[ii]);
+			}
+			fprintf(stderr, "|,");
+			for (int ii = 0; ii < 8; ++ii ){
+				fprintf(stderr, "%d,", pm_raw[ii+nElements-9]);
+			}
+			fprintf(stderr, "\n");
+		}
+	}
 	unlock();
 	epicsEventSignal(eventId);
     } else {
