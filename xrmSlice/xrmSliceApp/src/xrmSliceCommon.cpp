@@ -1,5 +1,5 @@
-/*
- * xrmSliceCommon.cpp
+/** @file xrmSliceCommon.cpp
+ *  @brief impl for xrmSlice Common ABC.
  *
  *  Created on: 30 Apr 2026
  *      Author: pgm

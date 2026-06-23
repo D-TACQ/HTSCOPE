@@ -1,5 +1,5 @@
-/*
- * acq400_asynPortDriver.cpp
+/** @file acq400_asynPortDriver.cpp
+ *  @brief implements common base class for xrmSlice services.
  *
  *  Created on: 6 Mar 2026
  *      Author: pgm

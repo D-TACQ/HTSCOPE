@@ -1,5 +1,5 @@
-/*
- * xrmSliceHT.cpp
+/** @file xrmSliceHT.cpp
+ *  @brief impl. for the HT (Hold Table) slicer.
  *
  *  Created on: 30 Apr 2026
  *      Author: pgm
@@ -210,8 +210,8 @@ XrmSliceHT* XrmSliceHT::factory(const char* portName)
 }
 
 extern "C" {
-	/** EPICS iocsh callable function to call constructor for the testAsynPortDriver class.
-	  * \param[in] portName The name of the asyn port driver to be created.
+	/** EPICS iocsh callable function to call constructor for the XrmSliceHT class.
+	  * @param[in] portName The name of the asyn port driver to be created.
 	  */
 	int xrmSlice_HT_Configure(const char *portName)
 	{

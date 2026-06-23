@@ -1,5 +1,6 @@
-/*
- * xrmSlicePM.cpp
+/** @file xrmSlicePM.cpp
+ *  @brief impl for PM Post Mortem xrmSlice class
+ *
  * Operation:
  * INPUTS: P_PM_RAW_INPUT  : the blob duplicated from ACQ400 xrmIoc
  * OUTPUT: P_XS_AI16_CH_RAW, P_XS_AI16_CH_EGU etc
@@ -262,8 +263,9 @@ asynStatus XrmSlicePM::writeInt32Array(
 
 
 extern "C" {
-	/** EPICS iocsh callable function to call constructor for the testAsynPortDriver class.
-	  * \param[in] portName The name of the asyn port driver to be created.
+	/** EPICS iocsh callable function to call constructor for the XrmSlicePM class.
+	  * @param[in] portName The name of the asyn port driver to be created. One PORT per PM history instance.
+	  * @param[in] maxAddr  Maximum number of addresses (AI16 channels)
 	  */
 	int xrmSlice_PM_Configure(const char *portName, int maxAddr)
 	{

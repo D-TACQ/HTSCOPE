@@ -1,5 +1,5 @@
-/*
- * xrmSliceCommon.h
+/** @file xrmSliceCommon.h
+ *  @brief interface for xrmSlice Common ABC.
  *
  *  Created on: 30 Apr 2026
  *      Author: pgm

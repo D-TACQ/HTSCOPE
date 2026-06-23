@@ -1,5 +1,6 @@
-/*
- * xrmSlicePM.h  : one instance per PM delay (20 instances expected)
+/** @file xrmSlicePM.h
+ *  @brief interface for PM Post Mortem xrmSlice class
+ * one instance per PM delay (20 instances expected)
  * IN: receive PM as raw BLOB from UUT
  * OUT: presents channelised, EGU data. Channel is the ADDR dimension (max 128).
  *

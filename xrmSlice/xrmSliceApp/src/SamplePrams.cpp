@@ -1,5 +1,5 @@
-/*
- * SamplePrams.cpp
+/** @file SamplePrams.cpp
+ *  @brief SamplePrams (aka Sample Geometry) implementation.
  *
  *  Created on: 6 Apr 2026
  *      Author: pgm

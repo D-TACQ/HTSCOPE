@@ -1,4 +1,8 @@
-/*
+/** @file xrmSliceHT.h
+ *  @brief interface for the HT (Hold Table) slicer.
+ *
+ *  Created on: 30 Apr 2026
+ *      Author: pgm
  * xrmSliceHT.h: singleton
  * IN: receive latest HT as raw BLOB from UUT
  * OUT: present channelised, egu data as a vector of channels.

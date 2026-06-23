@@ -1,5 +1,5 @@
-/*
- * acq400_asynPortDriver.h
+/** @file acq400_asynPortDriver.h
+ *  @brief interface for common base class for all services.
  *
  *  Created on: 6 Mar 2026
  *      Author: pgm
