@@ -15,8 +15,8 @@ static const char *driverName= __FILE__;
 int XrmSliceHT::nice 	= ::getenv_default("XrmSliceHT_NICE", 10);
 std::vector<XrmSliceHT*> XrmSliceHT::rowHandlers;
 
-XrmSliceHT::XrmSliceHT(const char *portName):
-	XrmSliceCommon(portName, SOE_HLD_ROWS),
+XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
+	XrmSliceCommon(portName, addr),
 	ht_buf_len(0),
 	ht_data(0)
 {
@@ -127,8 +127,6 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 }
 void XrmSliceHT::task()
 {
-	SamplePrams& sp = sample_prams;
-
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s::%s inside lock\n", DN, FN);
 
@@ -200,11 +198,11 @@ bool XrmSliceHT::exists(const char* portName)
 	return false;
 }
 
-XrmSliceHT* XrmSliceHT::factory(const char* portName)
+XrmSliceHT* XrmSliceHT::factory(const char* portName, int addr)
 {
 	assert(!exists(portName));
 
-	XrmSliceHT* current = new XrmSliceHT(portName);
+	XrmSliceHT* current = new XrmSliceHT(portName, addr);
 	rowHandlers.push_back(current);
 	return current;
 }
@@ -213,22 +211,23 @@ extern "C" {
 	/** EPICS iocsh callable function to call constructor for the XrmSliceHT class.
 	  * @param[in] portName The name of the asyn port driver to be created.
 	  */
-	int xrmSlice_HT_Configure(const char *portName)
+	int xrmSlice_HT_Configure(const char *portName, int addr)
 	{
-		printf("%s:%s R1001 %s\n", DN, FN, portName);
+		printf("%s:%s R1001 %s ai_columns:%d\n", DN, FN, portName, addr);
 
-		XrmSliceHT::factory(portName);
+		XrmSliceHT::factory(portName, addr);
 		return 0;
 	}
 
 	/* EPICS iocsh shell commands */
 
 	static const iocshArg initArg0 = { "port", iocshArgString };
-	static const iocshArg * const initArgs[] = { &initArg0, };
-	static const iocshFuncDef initFuncDef = { "xrmSlice_HT_Configure", 1, initArgs };
+	static const iocshArg initArg1 = { "addr", iocshArgInt };
+	static const iocshArg * const initArgs[] = { &initArg0, &initArg1 };
+	static const iocshFuncDef initFuncDef = { "xrmSlice_HT_Configure", 2, initArgs };
 	static void initCallFunc(const iocshArgBuf *args)
 	{
-		xrmSlice_HT_Configure(args[0].sval);
+		xrmSlice_HT_Configure(args[0].sval, args[1].ival);
 	}
 
 	void xrmSlice_HT_Register(void)

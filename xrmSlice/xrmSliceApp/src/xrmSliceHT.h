@@ -7,7 +7,8 @@
  * IN: receive latest HT as raw BLOB from UUT
  * OUT: present channelised, egu data as a vector of channels.
  *
- * EVT is the addr dimension (max SOE_HLD_ROWS, 64)
+ * EVT is the PORT dimension (max SOE_HLD_ROWS, 64)
+ * CHAN is the ADDR dimension (max AI_CHAN, depends on UUT)
  *
  *  Created on: 30 Apr 2026
  *      Author: pgm
@@ -50,10 +51,10 @@ protected:
 	static int nice;
 
 	static std::vector<XrmSliceHT*> rowHandlers;
-	XrmSliceHT(const char *portName);
+	XrmSliceHT(const char *portName, int addr);
 	static bool exists(const char* portName);
 public:
-	static XrmSliceHT* factory(const char* portName);
+	static XrmSliceHT* factory(const char* portName, int addr);
 
 	virtual ~XrmSliceHT() {}
 
