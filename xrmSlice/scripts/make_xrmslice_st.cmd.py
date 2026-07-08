@@ -75,14 +75,15 @@ xrmSlice_registerRecordDeviceDriver(pdbbase)
 def print_peer_pm(args, ii, peer, CHFMT):
     pm_cycles = int(os.getenv("XRMSLICE_PM_CYCLES", 20))
     geo = args.geometries[ii]
+    addr_count = geo.AI_COUNT
+
     for CYCLE in range(pm_cycles):
         SPORT =  SPORT = f'XRM{ii}PM{CYCLE:02d}'
         cyc = "{:02d}".format(CYCLE)
         hupc = f"HOST={args.host},UUT={peer.name},PORT={SPORT},CYCLE={cyc},TIMEOUT=10"
-        port_count = geo.AI_COUNT
 
         args.fp.write(f"""
-xrmSlice_PM_Configure("{SPORT}", {port_count})""")
+xrmSlice_PM_Configure("{SPORT}", {addr_count})""")
 # common
         if CYCLE == 0:
                 aip1 = f"AICOUNT1={geo.AI_COUNT+1}"
@@ -124,6 +125,7 @@ HT_HEADER_SIZE = 24
 def print_peer_ht(args, ii, peer, CHFMT):
     geo = args.geometries[ii]
     HTROWS = port_count = int(os.getenv("XRMSLICE_HT_ROWS", 64))
+    addr_count = geo.AI_COUNT
 
     for HTROW in range(port_count):
         row = "{:02d}".format(HTROW)
@@ -132,7 +134,7 @@ def print_peer_ht(args, ii, peer, CHFMT):
         hupc = f"HOST={args.host},UUT={peer.name},PORT={SPORT},ROW={row},TIMEOUT=10"
 
         args.fp.write(f"""
-xrmSlice_HT_Configure("{SPORT}", {port_count})"""
+xrmSlice_HT_Configure("{SPORT}", {addr_count})"""
         )
 
         if HTROW == 0:
