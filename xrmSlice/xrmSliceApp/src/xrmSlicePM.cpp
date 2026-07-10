@@ -222,6 +222,10 @@ asynStatus XrmSlicePM::writeInt32Array(
 	              portName, paramName, nElements);
 */
     if (function == P_PM_RAW_INPUT) {
+        if (nElements == 0) {
+            return asynSuccess;
+        }
+
 	lock();
 	if (pm_buf_len == 0){
 		pm_buf_len = nElements;
