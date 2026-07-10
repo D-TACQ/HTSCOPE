@@ -38,7 +38,7 @@ STREAM=$(EPICS_BASE)/../modules/StreamDevice/
 # EPICS_BASE should appear last so earlier modules can override stuff:
 # pgm comment out next line .. provided as environment
 #EPICS_BASE = /usr/local/epics/base/
-EPICS_BASE = /home/pgm/PROJECTS/ACQ400_ESW_TOP/EPICS7/acq400_epics_base
+EPICS_BASE = /usr/local/epics/base
 
 # Set RULES here if you want to use build rules from somewhere
 # other than EPICS_BASE:

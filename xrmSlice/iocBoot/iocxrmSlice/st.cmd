@@ -12,9 +12,7 @@ dbLoadDatabase "dbd/xrmSlice.dbd"
 xrmSlice_registerRecordDeviceDriver pdbbase
 
 ## Load record instances
-dbLoadTemplate "db/user.substitutions"
 dbLoadRecords "db/xrmSliceVersion.db", "user=pgm"
-dbLoadRecords "db/dbSubExample.db", "user=pgm"
 
 #- Set this to see messages from mySub
 #-var mySubDebug 1
