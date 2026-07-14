@@ -110,7 +110,7 @@ dbLoadRecords("$(DB_TOP)/xrmSlice_PM.db", "{hupc},{pmbn},ADDR=0,NSAM={geo.NSAM-1
         expanded_ai_db = f"db/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
-dbLoadRecords("{expanded_ai_db}", "{hupcn}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db", "{hupcn}")""")
         else:
             for ix in range(args.geometries[ii].AI_COUNT):
                 ch = CHFMT.format(ix+1)
@@ -158,7 +158,7 @@ xrmSlice_HT_Configure("{SPORT}", {addr_count})"""
         expanded_ai_db = f"db/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
-dbLoadRecords("{expanded_ai_db}", "{hupc}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db", "{hupc}")""")
         else:
             for ix in range(args.geometries[ii].AI_COUNT):
                 ch = CHFMT.format(ix+1)
