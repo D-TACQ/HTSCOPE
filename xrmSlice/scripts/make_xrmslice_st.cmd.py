@@ -66,10 +66,16 @@ def print_preamble(args):
         args.fp = open(args.output, "w")
     args.fp.write("# preamble\n")
     args.fp.write(f'# command\n#{" ".join(sys.argv)}')
+
+    peer_ips = []
+    for ii, peer in enumerate(args.peers):
+        peer_ips.append(peer.ip)
+
+    peer_ips_string = ",".join(peer_ips)
     args.fp.write(f"""
 < envPaths
 epicsEnvSet("DB_TOP", "$(TOP)/db")
-epicsEnvSet("EPICS_PVA_NAME_SERVERS", "{peer.ip}")
+epicsEnvSet("EPICS_PVA_NAME_SERVERS", "{peer_ips_string}")
 dbLoadDatabase("$(TOP)/dbd/xrmSlice.dbd")
 xrmSlice_registerRecordDeviceDriver(pdbbase)
 
