@@ -69,6 +69,7 @@ def print_preamble(args):
     args.fp.write(f"""
 < envPaths
 epicsEnvSet("DB_TOP", "$(TOP)/db")
+epicsEnvSet("EPICS_PVA_NAME_SERVERS", "{peer.ip}")
 dbLoadDatabase("$(TOP)/dbd/xrmSlice.dbd")
 xrmSlice_registerRecordDeviceDriver(pdbbase)
 
@@ -100,7 +101,7 @@ dbLoadRecords("$(DB_TOP)/xrmSlice_PM.db", "{hupc},{pmbn},ADDR=0,NSAM={geo.NSAM-1
 # slices
         hupcn = f"{hupc},NSAM={geo.NSAM-1}"             # index from RAW[1], skip ES
 
-        expanded_ai_db = f"$(DB_TOP)/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db"
+        expanded_ai_db = f"xrmSliceApp/Db/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
 dbLoadRecords("{expanded_ai_db}", "{hupcn}")""")
@@ -148,7 +149,7 @@ xrmSlice_HT_Configure("{SPORT}", {addr_count})"""
  dbLoadRecords("$(DB_TOP)/xrmSlice_HT_HDR.db", "{hupc},ADDR=0")""")
 
 # save time (well, st.cmd length at least) using expansion, if available
-        expanded_ai_db = f"$(DB_TOP)/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
+        expanded_ai_db = f"xrmSliceApp/Db/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
 dbLoadRecords("{expanded_ai_db}", "{hupc}")""")
