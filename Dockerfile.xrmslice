@@ -1,0 +1,113 @@
+# STAGE 1: EPICS & IOC COMPILER
+FROM rockylinux:9 AS builder
+
+RUN dnf update -y && \
+    dnf install --enablerepo=crb -y \
+    epel-release && \
+    dnf update -y && \
+    dnf install --enablerepo=crb -y \
+    gcc \
+    gcc-c++ \
+    git \
+    libevent-devel \
+    libtirpc-devel \
+    make \
+    perl \
+    readline-devel \
+    re2c \
+    rpcgen \
+    tar \
+    wget \
+    && dnf clean all
+
+# Bring in existing EPICS7 repository (base + modules)
+COPY EPICS7 /workspace/EPICS7
+
+# Recreate the symlinks EPICS modules expect
+RUN mkdir -p /usr/local/epics && \
+    ln -s /workspace/EPICS7/acq400_epics_base /usr/local/epics/base && \
+    ln -s /workspace/EPICS7/modules /usr/local/epics/modules
+
+# Disable arm cross-compilation globally so it only builds for x86_64
+RUN find /workspace/EPICS7 -name "CONFIG_SITE*" -exec sed -i 's/^CROSS_COMPILER_TARGET_ARCHS/#CROSS_COMPILER_TARGET_ARCHS/g' {} +
+
+# Compile EPICS base natively
+WORKDIR /workspace/EPICS7/acq400_epics_base
+RUN make
+
+# Compile EPICS modules (asyn, streamdevice, pvxs, etc.) natively
+WORKDIR /workspace/EPICS7/modules/asyn
+RUN make -j$(nproc)
+
+WORKDIR /workspace/EPICS7/modules/seq
+RUN make -j$(nproc)
+
+WORKDIR /workspace/EPICS7/modules/StreamDevice
+RUN make -j$(nproc)
+
+WORKDIR /workspace/EPICS7/modules/recsync/client
+RUN sed -i '/^EPICS_BASE/d' configure/RELEASE && \
+    echo "EPICS_BASE=/workspace/EPICS7/acq400_epics_base" >> configure/RELEASE && \
+    make -j$(nproc)
+
+# Inject the ACQ400 headers (Needed for acq400_asyn_common.h)
+COPY ACQ400DRV /workspace/ACQ400DRV
+
+# Build the IOC natively
+COPY XRMSLICE /workspace/XRMSLICE
+WORKDIR /workspace/XRMSLICE/xrmSlice
+
+# Extract only the headers, ignore the compiled .so libraries
+RUN mkdir -p include && \
+    find /workspace/ACQ400DRV -name '*.h' -exec cp -a {} include/ \;
+
+# Forcefully fix the paths in the ioc's RELEASE file
+RUN sed -i 's|$HOME/PROJECTS/ACQ400_ESW_TOP|/workspace|g' configure/RELEASE && \
+    sed -i '/^EPICS_BASE/d' configure/RELEASE && \
+    sed -i '/^RECSYNC/d' configure/RELEASE && \
+    sed -i '/^PVXS/d' configure/RELEASE && \
+    echo "EPICS_BASE=/workspace/EPICS7/acq400_epics_base" >> configure/RELEASE && \
+    echo "RECSYNC=/workspace/EPICS7/modules/recsync/client" >> configure/RELEASE && \
+    echo "PVXS=/workspace/EPICS7/acq400_epics_base/modules/pvxs" >> configure/RELEASE && \
+    find /workspace/EPICS7 -name "pvxsIoc.dbd" -exec cp {} /workspace/EPICS7/acq400_epics_base/dbd/ \; && \
+    find /workspace/EPICS7 -name "softIocPVX.dbd" -exec cp {} /workspace/EPICS7/acq400_epics_base/dbd/ \; && \
+    make -j$(nproc)
+
+# STAGE 2: LIGHTWEIGHT RUNTIME
+FROM rockylinux/rockylinux:10-minimal AS runtime
+
+# Preemptively install runtime libraries for network/events
+RUN microdnf install -y readline libstdc++ libevent libtirpc python && microdnf clean all
+
+# Extract EPICS base libraries
+COPY --from=builder /workspace/EPICS7/acq400_epics_base/lib/linux-x86_64 /epics/base/lib/linux-x86_64
+
+# Extract all compiled EPICS module libraries
+COPY --from=builder /workspace/EPICS7/modules/asyn/lib/linux-x86_64 /epics/modules/asyn/lib
+COPY --from=builder /workspace/EPICS7/modules/StreamDevice/lib/linux-x86_64 /epics/modules/StreamDevice/lib
+COPY --from=builder /workspace/EPICS7/modules/seq/lib/linux-x86_64 /epics/modules/seq/lib
+COPY --from=builder /workspace/EPICS7/modules/recsync/client/lib/linux-x86_64 /epics/modules/recsync/lib
+
+# Extract the compiled IOC executable and boot folder
+COPY --from=builder /workspace/XRMSLICE/xrmSlice /opt/xrmSlice
+
+# Extract EPICS Base libraries AND binaries (for caget, caput)
+COPY --from=builder /workspace/EPICS7/acq400_epics_base/lib/linux-x86_64 /epics/base/lib/linux-x86_64
+COPY --from=builder /workspace/EPICS7/acq400_epics_base/bin/linux-x86_64 /epics/base/bin/linux-x86_64
+
+# Configure paths so the IOC can find all the injected .so files!
+ENV LD_LIBRARY_PATH="/epics/base/lib/linux-x86_64:/epics/modules/asyn/lib:/epics/modules/StreamDevice/lib:/epics/modules/seq/lib:/epics/modules/recsync/lib:/opt/xrmSlice/lib/linux-x86_64"
+ENV LD_LIBRARY_PATH="/epics/base/lib/linux-x86_64:/epics/modules/asyn/lib:/epics/modules/StreamDevice/lib:/epics/modules/seq/lib:/epics/modules/recsync/lib:/epics/modules/pvxs/lib:/opt/xrmSlice/lib/linux-x86_64"
+ENV PATH="/epics/base/bin/linux-x86_64:/epics/modules/pvxs/bin:${PATH}"
+
+WORKDIR /opt/xrmSlice/iocBoot/iocxrmSlice
+RUN chmod +x st.cmd
+
+# Patch the build-time paths to point to the runtime directory
+RUN sed -i 's|/workspace/XRMSLICE/xrmSlice|/opt/xrmSlice|g' envPaths && \
+    sed -i 's|/workspace/XRMSLICE/xrmSlice|/opt/xrmSlice|g' st.cmd && \
+    chmod +x st.cmd
+
+WORKDIR /opt/xrmSlice
+CMD ["pwd"]
+

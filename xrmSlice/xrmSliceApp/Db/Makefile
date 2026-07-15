@@ -5,8 +5,10 @@ include $(TOP)/configure/CONFIG
 
 # Install databases, templates & substitutions like this
 DB += xrmSliceVersion.db
+DB +=  xrmSliceAI_HT_128CH.db
 DB +=  xrmSliceAI_HT_32CH.db
 DB +=  xrmSliceAI_HT_16CH.db
+DB +=  xrmSliceAI_PM_128CH.db
 DB +=  xrmSliceAI_PM_32CH.db
 DB +=  xrmSliceAI_PM_16CH.db
 DB += xrmSliceSP_PM_8.db
