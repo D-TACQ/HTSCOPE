@@ -91,15 +91,6 @@ XrmSliceCommon::~XrmSliceCommon() {
 
 }
 
-/* @@todo .. the static members are convenient, but limit us to ONE peer per IOC */
-#ifdef PGMCOMOUT
-SamplePrams XrmSliceCommon::sample_prams;
-SamplePrams XrmSliceCommon::sample_prams_field_has_been_written;
-
-VF XrmSliceCommon::eslo;      // index from zero
-VF XrmSliceCommon::eoff;
-#endif
-
 #define SET_SAMPLE_PRAMS_FIELD(function, FIELD) \
 	if (function == P_XS_SMPL_##FIELD) {			\
 		uut_p.sample_prams.FIELD = value;				\
