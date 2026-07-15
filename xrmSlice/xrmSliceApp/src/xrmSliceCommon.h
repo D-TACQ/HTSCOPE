@@ -60,6 +60,7 @@ class XrmSliceCommon: public acq400_asynPortDriver {
 	static void update_cal(VF& vx, epicsFloat32 *value, size_t nElements);
 
 	static UUT_Prams& getUutPrams(const char* portName);
+	char* uut_id;
 protected:
 	UUT_Prams& uut_p;
 	static int verbose;

@@ -7,6 +7,7 @@
 
 #include "xrmSliceCommon.h"
 #include "acq-util.h"
+#include <string.h>
 
 static const char *driverName= __FILE__;
 #define DN	driverName
@@ -14,14 +15,40 @@ static const char *driverName= __FILE__;
 
 int XrmSliceCommon::verbose = ::getenv_default("XrmSliceCommon_VERBOSE", 0);
 
-typedef std::map<const char*, UUT_Prams*> UutPramsMap;
+typedef std::map<const std::string, UUT_Prams*> UutPramsMap;
 
+#define CS "0123456789"
+
+static const char* _getUutId(const char* portName){
+	static char id[8];
+	int i0 = strcspn(portName, CS);
+	int i1 = strspn(portName+i0, CS);
+
+	strncpy(id, portName, i0+i1);
+	return id;
+}
 UUT_Prams& XrmSliceCommon::getUutPrams(const char* portName)
 {
 	static UutPramsMap uut_prams_map;
-	static UUT_Prams gash;
-	// @@todo gash implementation so far.
-	return gash;
+
+	const char* uut_id = _getUutId(portName);
+
+	if (uut_prams_map.count(uut_id) == 0){
+		UUT_Prams* prams = new UUT_Prams;
+		uut_prams_map[uut_id] = prams;
+	}
+
+	if (verbose > 1){
+		fprintf(stderr, "%s iterate map count:%u\n", FN, uut_prams_map.size());
+		for (auto const &ent: uut_prams_map){
+			fprintf(stderr, "%s map[%s] -> %p\n", FN, ent.first.c_str(), ent.second);
+		}
+
+	}
+	if (verbose){
+		fprintf(stderr, "%s map[%s] return *%p\n", FN, uut_id, uut_prams_map[uut_id]);
+	}
+	return *uut_prams_map[uut_id];
 }
 
 bool XrmSliceCommon::wait_and_lock()  {
