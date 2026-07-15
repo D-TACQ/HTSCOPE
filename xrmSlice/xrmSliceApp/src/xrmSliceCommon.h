@@ -46,14 +46,22 @@
 
 typedef std::vector<float> VF;
 
-class XrmSliceCommon: public acq400_asynPortDriver {
-	static SamplePrams sample_prams_field_has_been_written;
 
+struct UUT_Prams {
+	SamplePrams sample_prams;
+	SamplePrams sample_prams_field_has_been_written;
+	VF eslo;      // index from zero
+	VF eoff;
+};
+
+
+
+class XrmSliceCommon: public acq400_asynPortDriver {
 	static void update_cal(VF& vx, epicsFloat32 *value, size_t nElements);
+
+	static UUT_Prams& getUutPrams(const char* portName);
 protected:
-	static SamplePrams sample_prams;
-	static VF eslo;      // index from zero
-	static VF eoff;
+	UUT_Prams& uut_p;
 	static int verbose;
 
 	int P_XS_UPTIME;

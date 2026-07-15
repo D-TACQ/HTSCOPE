@@ -19,6 +19,7 @@
 #include <iocsh.h>
 
 #include <vector>
+#include <map>
 #include <split2.h>
 
 #include "asynPortDriver.h"

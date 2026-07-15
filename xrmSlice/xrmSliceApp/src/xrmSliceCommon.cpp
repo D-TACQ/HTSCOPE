@@ -14,6 +14,16 @@ static const char *driverName= __FILE__;
 
 int XrmSliceCommon::verbose = ::getenv_default("XrmSliceCommon_VERBOSE", 0);
 
+typedef std::map<const char*, UUT_Prams*> UutPramsMap;
+
+UUT_Prams& XrmSliceCommon::getUutPrams(const char* portName)
+{
+	static UutPramsMap uut_prams_map;
+	static UUT_Prams gash;
+	// @@todo gash implementation so far.
+	return gash;
+}
+
 bool XrmSliceCommon::wait_and_lock()  {
 	epicsEventWait(eventId);
 	lock();
@@ -32,7 +42,8 @@ XrmSliceCommon::XrmSliceCommon(const char* portName, int max_addr):
 	/* asynFlags no block*/ 0,
 	/* Autoconnect */       1,
 	/* Default priority */  0,
-	/* Default stack size*/ 0)
+	/* Default stack size*/ 0),
+	uut_p(getUutPrams(portName))
 {
 	createParam(PS_XS_UPTIME,		asynParamInt32,      &P_XS_UPTIME);
 	createParam(PS_XS_ESLO,			asynParamFloat32Array,&P_XS_ESLO);
@@ -54,17 +65,18 @@ XrmSliceCommon::~XrmSliceCommon() {
 }
 
 /* @@todo .. the static members are convenient, but limit us to ONE peer per IOC */
+#ifdef PGMCOMOUT
 SamplePrams XrmSliceCommon::sample_prams;
 SamplePrams XrmSliceCommon::sample_prams_field_has_been_written;
 
 VF XrmSliceCommon::eslo;      // index from zero
 VF XrmSliceCommon::eoff;
-
+#endif
 
 #define SET_SAMPLE_PRAMS_FIELD(function, FIELD) \
 	if (function == P_XS_SMPL_##FIELD) {			\
-	    sample_prams.FIELD = value;				\
-	    sample_prams_field_has_been_written.FIELD = 1;	\
+		uut_p.sample_prams.FIELD = value;				\
+		uut_p.sample_prams_field_has_been_written.FIELD = 1;	\
 	    break;						\
 	}
 
@@ -105,7 +117,7 @@ asynStatus XrmSliceCommon::writeInt32(asynUser *pasynUser, epicsInt32 value)
 		    SET_SAMPLE_PRAMS_FIELD(function, SP_INDEX);
 	    } while(0);
 
-	    if (sample_prams.validate(sample_prams_field_has_been_written)){
+	    if (uut_p.sample_prams.validate(uut_p.sample_prams_field_has_been_written)){
 		    fprintf(stderr,
 				    "%s:%s: function=%d, name=%s, value=%d sample_prams valid!\n",
 		    		    DN, FN, function, paramName, value);
@@ -165,7 +177,7 @@ asynStatus XrmSliceCommon::writeFloat32Array(
 			FN, function,
 			    function==P_XS_EOFF? PS_XS_EOFF:
 			    function==P_XS_ESLO? PS_XS_ESLO: "unknown", nElements);
-		update_cal(function==P_XS_EOFF? eoff: eslo, value, nElements);
+		update_cal(function==P_XS_EOFF? uut_p.eoff: uut_p.eslo, value, nElements);
 		unlock();
 		//epicsEventSignal(eventId);
 	    } else {

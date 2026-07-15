@@ -62,11 +62,13 @@ typedef epicsUInt32 * PU32;
 
 
 bool XrmSliceHT::ready_to_slice() {
+
 	if (!ht_data){
 		fprintf(stderr, "%s WARNING: ht_raw not set\n", FN);
 		return false;
 	}
-	if (!sample_prams.isValid()){
+	const SamplePrams& sp = uut_p.sample_prams;
+	if (!sp.isValid()){
 		fprintf(stderr, "%s WARNING: !sample_prams.isValid()\n", FN);
 		return false;
 	}
@@ -78,7 +80,7 @@ bool XrmSliceHT::ready_to_slice() {
 void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* sample)
 {
 	if (verbose) fprintf(stderr, "%s:%s:" FMTSZT " pv:%d sample:%p\n", DN, FN, row, header->pv_id, sample);
-	SamplePrams& sp = sample_prams;
+	const SamplePrams& sp = uut_p.sample_prams;
 
 	if (row < rowHandlers.size()){
 		XrmSliceHT* sliceHT = rowHandlers[row];
@@ -90,11 +92,11 @@ void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* samp
 
 		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 			const epicsInt16 raw = psrc16[ai];
-			double egu = (double)raw*eslo[ai] + eoff[ai];
+			double egu = (double)raw*uut_p.eslo[ai] + uut_p.eoff[ai];
 
 			if (verbose > 1 && ai == 0){
 				fprintf(stderr, "%s:%s: %d raw:%04x egu:%.3f eoff:%.3f eslo:%.3f\n",
-						DN, FN, ai, raw, egu, eoff[ai], eslo[ai]);
+						DN, FN, ai, raw, egu, uut_p.eoff[ai], uut_p.eslo[ai]);
 			}
 			sliceHT->sip(ai, P_XS_AI16_CH_RAW, raw);
 			sliceHT->sfp(ai, P_XS_AI16_CH_EGU, egu);

@@ -59,38 +59,39 @@ bool XrmSlicePM::ready_to_slice() {
 		fprintf(stderr, "%s WARNING: pm_raw not set\n", FN);
 		return false;
 	}
-	if (!sample_prams.isValid()){
+	if (!uut_p.sample_prams.isValid()){
 		fprintf(stderr, "%s WARNING: !sample_prams.isValid()\n", FN);
 		return false;
 	}
-	const int ndata = sample_prams.NSAM - 1;
+	const SamplePrams& sp = uut_p.sample_prams;
+	const int ndata = sp.NSAM - 1;
 
 	/* allocate local buffers.
 	 * The XrmSlicePM instance stays live for the duration of the process,
 	 * and the OS recovers the data on process exit => no leak, no need for delete
 	 */
-	if (!p_AI16 && sample_prams.AI_COUNT > 0){
-		p_AI16 = new epicsInt16* [sample_prams.AI_COUNT];
-		for (int ai = 0; ai < sample_prams.AI_COUNT; ++ai){
+	if (!p_AI16 && sp.AI_COUNT > 0){
+		p_AI16 = new epicsInt16* [sp.AI_COUNT];
+		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 			p_AI16[ai] = new epicsInt16 [ndata];
 		}
 	}
-	if (!p_AI_EGU && sample_prams.AI_COUNT > 0){
-		p_AI_EGU = new epicsFloat32* [sample_prams.AI_COUNT];
-		for (int ai = 0; ai < sample_prams.AI_COUNT; ++ai){
+	if (!p_AI_EGU && sp.AI_COUNT > 0){
+		p_AI_EGU = new epicsFloat32* [sp.AI_COUNT];
+		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 			p_AI_EGU[ai] = new epicsFloat32 [ndata];
 		}
 	}
-	if (!p_DI32 && sample_prams.DI_COUNT > 0){
-		p_DI32 = new epicsUInt32* [sample_prams.DI_COUNT];
-		for (int di = 0; di < sample_prams.DI_COUNT; ++di){
+	if (!p_DI32 && sp.DI_COUNT > 0){
+		p_DI32 = new epicsUInt32* [sp.DI_COUNT];
+		for (int di = 0; di < sp.DI_COUNT; ++di){
 			p_DI32[di] = new epicsUInt32 [ndata];
 		}
 	}
-	if (!p_SP32 && sample_prams.SP_COUNT > 0){
-		p_SP32 = new epicsUInt32* [sample_prams.SP_COUNT];
-		for (int sp = 0; sp < sample_prams.SP_COUNT; ++sp){
-			p_SP32[sp] = new epicsUInt32 [ndata];
+	if (!p_SP32 && sp.SP_COUNT > 0){
+		p_SP32 = new epicsUInt32* [sp.SP_COUNT];
+		for (int sp32 = 0; sp32 < sp.SP_COUNT; ++sp32){
+			p_SP32[sp32] = new epicsUInt32 [ndata];
 		}
 	}
 	(p_WRVS == 0) && (p_WRVS = new epicsUInt32 [ndata]);
@@ -103,7 +104,7 @@ bool XrmSlicePM::ready_to_slice() {
 void XrmSlicePM::task()
 /**< slicing takes place here. */
 {
-	SamplePrams& sp = sample_prams;
+	const SamplePrams& sp = uut_p.sample_prams;
 	bool vectors_checked = false;
 
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
@@ -137,7 +138,7 @@ void XrmSlicePM::task()
 			for (int ai = 0; ai < sp.AI_COUNT; ++ai){
 				const epicsInt16 raw = psrc16[ai];
 				p_AI16[ai][outrow] = raw;
-				p_AI_EGU[ai][outrow] = (float)raw*eslo[ai] + eoff[ai];
+				p_AI_EGU[ai][outrow] = (float)raw*uut_p.eslo[ai] + uut_p.eoff[ai];
 			}
 			for (int di = 0; di < sp.DI_COUNT; ++di){
 				if (p_DI32[di]){
@@ -207,6 +208,7 @@ asynStatus XrmSlicePM::writeInt32Array(
     const char *paramName;
     int addr = 0;
 
+
     getParamName(function, &paramName);
     if (maxAddr > 1){
 	    status = pasynManager->getAddr(pasynUser, &addr);
@@ -222,6 +224,8 @@ asynStatus XrmSlicePM::writeInt32Array(
 	              portName, paramName, nElements);
 */
     if (function == P_PM_RAW_INPUT) {
+	const SamplePrams& sp = uut_p.sample_prams;
+
 	lock();
 	if (pm_buf_len == 0){
 		pm_buf_len = nElements;
@@ -232,7 +236,7 @@ asynStatus XrmSlicePM::writeInt32Array(
 	}
 	assert(pm_raw == (PU32)value);
 
-	const int NORD =  sample_prams.NSAM*sample_prams.SSB/sizeof(unsigned);
+	const unsigned NORD =  sp.NSAM*sp.SSB/sizeof(unsigned);
 	if (nElements != NORD){
 		fprintf(stderr, "%s:%s: Port %s, Param %s, nElements " FMTSZT ", != NORD %d\n",
 				DN, FN, portName, paramName, nElements, NORD);
