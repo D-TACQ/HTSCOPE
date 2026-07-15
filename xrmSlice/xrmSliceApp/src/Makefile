@@ -23,7 +23,6 @@ xrmSliceSupport_SRCS += devXxxSoft.c
 # Link locally-provided code into the support library,
 # rather than directly into the IOC application, that
 # causes problems on Windows DLL builds
-xrmSliceSupport_SRCS += dbSubExample.c
 xrmSliceSupport_SRCS += devxrmSliceVersion.c
 xrmSliceSupport_SRCS += xrmSliceHello.c
 xrmSliceSupport_SRCS += initTrace.c
@@ -45,7 +44,6 @@ DBD += xrmSlice.dbd
 # xrmSlice.dbd will include these files:
 xrmSlice_DBD += base.dbd
 xrmSlice_DBD += xxxSupport.dbd
-xrmSlice_DBD += dbSubExample.dbd
 xrmSlice_DBD += devxrmSliceVersion.dbd
 xrmSlice_DBD += xrmSliceHello.dbd
 xrmSlice_DBD += initTrace.dbd

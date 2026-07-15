@@ -226,6 +226,11 @@ asynStatus XrmSlicePM::writeInt32Array(
     if (function == P_PM_RAW_INPUT) {
 	const SamplePrams& sp = uut_p.sample_prams;
 
+	/* @@todo is this a good idea (merge suggests it was eliminated .. */
+        if (nElements == 0) {
+            return asynSuccess;
+        }
+
 	lock();
 	if (pm_buf_len == 0){
 		pm_buf_len = nElements;

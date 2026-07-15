@@ -14,7 +14,7 @@ from typing import NamedTuple
 class NameAndAddress(NamedTuple):
     name: str
     ip: str
-    
+
 class SampleGeometry(NamedTuple):
     AI_COUNT: int
     AI_INDEX: int
@@ -42,9 +42,9 @@ def getSampleGeometry(peer):
 #    print(my_env)
     print(f"getSampleGeometry EPICS_PVA_NAME_SERVERS={peer.ip} ./scripts/pvxget_value {peer.name}:SMPL")
     process = subprocess.Popen(
-        ["./scripts/pvxget_value", f"{peer.name}:SMPL"], 
+        ["./scripts/pvxget_value", f"{peer.name}:SMPL"],
         env=my_env, stdout=subprocess.PIPE, text=True)
-        
+
     lines = process.communicate()[0].strip().split('\n')
     if process.returncode != 0:
         print(f"ERROR: pvxget_value failed {process.returncode}")
@@ -58,7 +58,7 @@ def getSampleGeometry(peer):
     sg = SampleGeometry(**fields)
     print(f"output: {sg}")
     return sg
-    
+
 def print_preamble(args):
     if args.output == '-':
         args.fp = sys.stdout
@@ -67,7 +67,9 @@ def print_preamble(args):
     args.fp.write("# preamble\n")
     args.fp.write(f'# command\n#{" ".join(sys.argv)}')
     args.fp.write(f"""
-dbLoadDatabase("./dbd/xrmSlice.dbd")
+< envPaths
+epicsEnvSet("DB_TOP", "$(TOP)/db")
+dbLoadDatabase("$(TOP)/dbd/xrmSlice.dbd")
 xrmSlice_registerRecordDeviceDriver(pdbbase)
 
 """)
@@ -88,17 +90,17 @@ xrmSlice_PM_Configure("{SPORT}", {addr_count})""")
         if CYCLE == 0:
                 aip1 = f"AICOUNT1={geo.AI_COUNT+1}"
                 args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceCommon.db", "{hupc},{sg2db_prams(geo)},{aip1}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceCommon.db", "{hupc},{sg2db_prams(geo)},{aip1}")""")
 
 # blob
         pmbn = f"PM_BUF_NELM={geo.SSB*geo.NSAM//4}"
         args.fp.write(f"""
-dbLoadRecords("./db/xrmSlice_PM.db", "{hupc},{pmbn},ADDR=0,NSAM={geo.NSAM-1}")""")
+dbLoadRecords("$(DB_TOP)/xrmSlice_PM.db", "{hupc},{pmbn},ADDR=0,NSAM={geo.NSAM-1}")""")
 
 # slices
         hupcn = f"{hupc},NSAM={geo.NSAM-1}"             # index from RAW[1], skip ES
 
-        expanded_ai_db = f"./db/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db"
+        expanded_ai_db = f"$(DB_TOP)/xrmSliceAI_PM_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
 dbLoadRecords("{expanded_ai_db}", "{hupcn}")""")
@@ -106,22 +108,22 @@ dbLoadRecords("{expanded_ai_db}", "{hupcn}")""")
             for ix in range(args.geometries[ii].AI_COUNT):
                 ch = CHFMT.format(ix+1)
                 args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceAI_PM.db", "{hupcn},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},DI={ix}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceDI_PM.db", "{hupcn},ADDR={ix},DI={ix}")""")
 
         if args.geometries[ii].SP_COUNT >= 8:
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_PM_8.db", "{hupcn}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceSP_PM_8.db", "{hupcn}")""")
         else:
             for sp in range(args.geometries[ii].SP_COUNT):
                 args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_PM.db", "{hupcn},ADDR={sp},SP={sp:02d}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceSP_PM.db", "{hupcn},ADDR={sp},SP={sp:02d}")""")
 
 HT_HEADER_SIZE = 24
-            
+
 def print_peer_ht(args, ii, peer, CHFMT):
     geo = args.geometries[ii]
     HTROWS = port_count = int(os.getenv("XRMSLICE_HT_ROWS", 64))
@@ -140,13 +142,13 @@ xrmSlice_HT_Configure("{SPORT}", {addr_count})"""
         if HTROW == 0:
                 htbn = f"HT_BUF_NELM={(HTROWS*(HT_HEADER_SIZE+geo.SSB)+HT_HEADER_SIZE)//4}"
                 args.fp.write(f"""
- dbLoadRecords("./db/xrmSlice_HT.db", "{hupc},ADDR=0,{htbn}")""")
+ dbLoadRecords("$(DB_TOP)/xrmSlice_HT.db", "{hupc},ADDR=0,{htbn}")""")
 
         args.fp.write(f"""
- dbLoadRecords("./db/xrmSlice_HT_HDR.db", "{hupc},ADDR=0")""")
- 
+ dbLoadRecords("$(DB_TOP)/xrmSlice_HT_HDR.db", "{hupc},ADDR=0")""")
+
 # save time (well, st.cmd length at least) using expansion, if available
-        expanded_ai_db = f"./db/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
+        expanded_ai_db = f"$(DB_TOP)/xrmSliceAI_HT_{args.geometries[ii].AI_COUNT}CH.db"
         if os.path.isfile(expanded_ai_db):
             args.fp.write(f"""
 dbLoadRecords("{expanded_ai_db}", "{hupc}")""")
@@ -154,22 +156,22 @@ dbLoadRecords("{expanded_ai_db}", "{hupc}")""")
             for ix in range(args.geometries[ii].AI_COUNT):
                 ch = CHFMT.format(ix+1)
                 args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceAI_HT.db", "{hupc},ADDR={ix},CH={ch}")""")
 
         for ix in range(args.geometries[ii].DI_COUNT):
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceDI_HT.db", "{hupc},ADDR={ix},DI={ix}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceDI_HT.db", "{hupc},ADDR={ix},DI={ix}")""")
 
         if args.geometries[ii].SP_COUNT >= 8:
             args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_HT_8.db", "{hupc}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceSP_HT_8.db", "{hupc}")""")
         else:
             for sp in range(args.geometries[ii].SP_COUNT):
                 args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceSP_HT.db", "{hupc},ADDR={sp},SP={sp:02d}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceSP_HT.db", "{hupc},ADDR={sp},SP={sp:02d}")""")
 
         args.fp.write(f"""
-dbLoadRecords("./db/xrmSliceET_HT.db", "{hupc}")""")
+dbLoadRecords("$(DB_TOP)/xrmSliceET_HT.db", "{hupc}")""")
 
 
         
@@ -214,7 +216,7 @@ def init(args):
             ip = uut
         name_and_address = NameAndAddress(name, ip)
         geometry = getSampleGeometry(name_and_address)
-        
+
         if isValidGeometry(geometry):
             args.peers.append(name_and_address)
             args.geometries.append(geometry)
@@ -238,7 +240,7 @@ def default_user():
 
 def get_parser():
     parser = argparse.ArgumentParser(description="create htscope epics record definition")
-    parser.add_argument('--output', '-O', default="st.cmd", help="record definition file name [st.cmd]")    
+    parser.add_argument('--output', '-O', default="st.cmd", help="record definition file name [st.cmd]")
     parser.add_argument('--host', default=default_host(), type=str, help='prefix for PV\'s, default="$(hostname)"')
     parser.add_argument('--user',   default=default_user(), help='one or more users (must be at least one) eg --user=tom,dick,harry default="$USER"')
     parser.add_argument('uuts', nargs='+', help="uut1[ uut2...]")
