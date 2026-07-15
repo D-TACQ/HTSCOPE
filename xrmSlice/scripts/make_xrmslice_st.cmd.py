@@ -71,7 +71,7 @@ def print_preamble(args):
     for ii, peer in enumerate(args.peers):
         peer_ips.append(peer.ip)
 
-    peer_ips_string = ",".join(peer_ips)
+    peer_ips_string = " ".join(peer_ips)
     args.fp.write(f"""
 < envPaths
 epicsEnvSet("DB_TOP", "$(TOP)/db")
