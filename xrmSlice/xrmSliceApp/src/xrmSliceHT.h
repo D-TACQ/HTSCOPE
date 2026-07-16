@@ -27,9 +27,25 @@
 #define PS_SOE_HLD_ENT_TS        	"SOE_HLD_ENT_TS"
 #define PS_SOE_HLD_ENT_DATA_OFFSET 	"SOE_HLD_ENT_DATA_OFFSET"
 
+
+class XrmSliceHT;
+
+typedef std::vector<XrmSliceHT*> XrmSliceHT_V;
+typedef std::map<const std::string, std::vector<XrmSliceHT*>*> XrmSliceHT_VM;
+
 class XrmSliceHT: public XrmSliceCommon {
+	/**
+	 * for every UUT, Instantiate one instance XrmSliceHT for every HT row.
+	 * for every UUT, hold one list XrmSliceHT_V of the related XrmSliceHT instances as "RowHandlers"
+	 * hold the lists in rowHandlersMap, containing N UUTS entryes.
+	 * EVERY XrmSliceHT self registers via registerRowHandler
+	 * In practice, only the HEAD XrmSliceHT instance accesses the RowHandlers list, obtaining it from rowHandlersMap.
+	 * */
+	static XrmSliceHT_VM rowHandlersMap;
+	bool registerRowHandler();  /**< return true is HEAD instance */
 
 protected:
+
 	int P_HT_RAW_INPUT;
 
 	size_t ht_buf_len;
@@ -45,14 +61,13 @@ protected:
 
 	bool ready_to_slice();
 
-	void ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* sample);
+	void ht_slice(XrmSliceHT& sliceHT, SOE_HOLD_HEADER* header, epicsUInt32* sample);
 	/** slice a single row of the ht. runs in lock() context */
 
 	static int nice;
 
-	static std::vector<XrmSliceHT*> rowHandlers;
+
 	XrmSliceHT(const char *portName, int addr);
-	static bool exists(const char* portName);
 public:
 	static XrmSliceHT* factory(const char* portName, int addr);
 

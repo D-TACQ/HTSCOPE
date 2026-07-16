@@ -19,19 +19,17 @@ typedef std::map<const std::string, UUT_Prams*> UutPramsMap;
 
 #define CS "0123456789"
 
-static const char* _getUutId(const char* portName){
-	static char id[8];
+const char* XrmSliceCommon::getUutId(const char* portName){
+
 	int i0 = strcspn(portName, CS);
 	int i1 = strspn(portName+i0, CS);
 
-	strncpy(id, portName, i0+i1);
-	return id;
+	return strncpy(new char[i0+i1+1], portName, i0+i1);
 }
-UUT_Prams& XrmSliceCommon::getUutPrams(const char* portName)
+
+UUT_Prams& XrmSliceCommon::getUutPrams(const char* uut_id)
 {
 	static UutPramsMap uut_prams_map;
-
-	const char* uut_id = _getUutId(portName);
 
 	if (uut_prams_map.count(uut_id) == 0){
 		UUT_Prams* prams = new UUT_Prams;
@@ -39,7 +37,7 @@ UUT_Prams& XrmSliceCommon::getUutPrams(const char* portName)
 	}
 
 	if (verbose > 1){
-		fprintf(stderr, "%s iterate map count:%u\n", FN, uut_prams_map.size());
+		fprintf(stderr, "%s iterate map count:%lu\n", FN, uut_prams_map.size());
 		for (auto const &ent: uut_prams_map){
 			fprintf(stderr, "%s map[%s] -> %p\n", FN, ent.first.c_str(), ent.second);
 		}
@@ -70,7 +68,8 @@ XrmSliceCommon::XrmSliceCommon(const char* portName, int max_addr):
 	/* Autoconnect */       1,
 	/* Default priority */  0,
 	/* Default stack size*/ 0),
-	uut_p(getUutPrams(portName))
+	uut_id(getUutId(portName)),
+	uut_p(getUutPrams(uut_id))
 {
 	createParam(PS_XS_UPTIME,		asynParamInt32,      &P_XS_UPTIME);
 	createParam(PS_XS_ESLO,			asynParamFloat32Array,&P_XS_ESLO);

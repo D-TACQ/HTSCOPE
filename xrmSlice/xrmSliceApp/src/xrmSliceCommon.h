@@ -59,10 +59,17 @@ struct UUT_Prams {
 class XrmSliceCommon: public acq400_asynPortDriver {
 	static void update_cal(VF& vx, epicsFloat32 *value, size_t nElements);
 
-	static UUT_Prams& getUutPrams(const char* portName);
-	char* uut_id;
+	/**
+	 * for each UUT, there's a master DEVICE with a copy of UUT_Prams
+	 * a reference to master is set on object construction so that every object has
+	 * rapid access to the appropriate UUT_Prams
+	 * */
+	static const char* getUutId(const char* portName);
+	static UUT_Prams& getUutPrams(const char* uut_id);
+
 protected:
-	UUT_Prams& uut_p;
+	const char* uut_id;          /**< unique key for uut for possible use by subclass */
+	UUT_Prams& uut_p;            /**< reference to common UUT geometry and calibration */
 	static int verbose;
 
 	int P_XS_UPTIME;

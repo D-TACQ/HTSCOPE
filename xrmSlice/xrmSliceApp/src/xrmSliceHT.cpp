@@ -13,7 +13,40 @@ static const char *driverName= __FILE__;
 #define FN	__FUNCTION__
 
 int XrmSliceHT::nice 	= ::getenv_default("XrmSliceHT_NICE", 10);
-std::vector<XrmSliceHT*> XrmSliceHT::rowHandlers;
+
+
+XrmSliceHT_VM XrmSliceHT::rowHandlersMap;
+
+
+bool XrmSliceHT::registerRowHandler()
+{
+	assert(strstr(uut_id, "XRM") != 0);
+
+	bool is_head = false;
+	if (rowHandlersMap.count(uut_id) == 0){
+		rowHandlersMap[uut_id] = new XrmSliceHT_V;
+		is_head = true;
+		if (verbose > 1){
+			fprintf(stderr, "%s %s new %p\n", FN, uut_id, rowHandlersMap[uut_id]);
+		}
+	}
+	XrmSliceHT_V* row_handlers = rowHandlersMap[uut_id];
+	fprintf(stderr, "%s %s row_handlers:%p push_back %p size:%lu before\n",
+			FN, uut_id, row_handlers, this, row_handlers->size());
+	row_handlers->push_back(this);
+	fprintf(stderr, "%s %s row_handlers:%p push_back %p size:%lu after\n",
+				FN, uut_id, row_handlers, this, row_handlers->size());
+
+	if (verbose > 1){
+		fprintf(stderr, "%s %s iterate map count:%lu my_handlers:%lu\n",
+				FN, portName, rowHandlersMap.size(), row_handlers->size());
+		for (auto const &ent: rowHandlersMap){
+			fprintf(stderr, "%s map[%s] -> %p\n", FN, ent.first.c_str(), ent.second);
+		}
+	}
+	return is_head;
+}
+
 
 XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 	XrmSliceCommon(portName, addr),
@@ -37,10 +70,14 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 
 	createParam(PS_HT_RAW_INPUT,	asynParamInt32Array,  &P_HT_RAW_INPUT);
 
-	if (rowHandlers.size() == 0){
+	if (registerRowHandler()){
 	/* Create the thread that computes the waveforms in the background */
 		char* taskname = new char[32];
 		snprintf(taskname, 32, "%s_task", portName);
+
+		if (verbose){
+			fprintf(stderr, "%s create task %s\n", FN, taskname);
+		}
 		status = (asynStatus)(epicsThreadCreate(taskname,
 			epicsThreadPriorityHigh - nice,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
@@ -49,6 +86,10 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 		if (status) {
 			printf("%s:%s: epicsThreadCreate failure\n", DN, FN);
 		}
+	}
+	if (verbose){
+		fprintf(stderr, "%s pn:%s uut_id:%s handlers.size:%lu\n",
+				FN, portName, uut_id, rowHandlersMap[uut_id]->size());
 	}
 }
 
@@ -77,58 +118,57 @@ bool XrmSliceHT::ready_to_slice() {
 
 }
 
-void XrmSliceHT::ht_slice(size_t row, SOE_HOLD_HEADER* header, epicsUInt32* sample)
+void XrmSliceHT::ht_slice(XrmSliceHT& sliceHT, SOE_HOLD_HEADER* header, epicsUInt32* sample)
 {
-	if (verbose) fprintf(stderr, "%s:%s:" FMTSZT " pv:%d sample:%p\n", DN, FN, row, header->pv_id, sample);
 	const SamplePrams& sp = uut_p.sample_prams;
+	sliceHT.sip(0, P_SOE_HLD_ENT_PV_ID, header->pv_id);
+	// @@todo now do the rest
 
-	if (row < rowHandlers.size()){
-		XrmSliceHT* sliceHT = rowHandlers[row];
-		sliceHT->sip(0, P_SOE_HLD_ENT_PV_ID, header->pv_id);
-		// @@todo now do the rest
+	epicsUInt32* psrc32 = sample;
+	epicsInt16* psrc16 = (epicsInt16*)psrc32;
 
-		epicsUInt32* psrc32 = sample;
-		epicsInt16* psrc16 = (epicsInt16*)psrc32;
+	for (int ai = 0; ai < sp.AI_COUNT; ++ai){
+		const epicsInt16 raw = psrc16[ai];
+		double egu = (double)raw*uut_p.eslo[ai] + uut_p.eoff[ai];
 
-		for (int ai = 0; ai < sp.AI_COUNT; ++ai){
-			const epicsInt16 raw = psrc16[ai];
-			double egu = (double)raw*uut_p.eslo[ai] + uut_p.eoff[ai];
-
-			if (verbose > 1 && ai == 0){
-				fprintf(stderr, "%s:%s: %d raw:%04x egu:%.3f eoff:%.3f eslo:%.3f\n",
-						DN, FN, ai, raw, egu, uut_p.eoff[ai], uut_p.eslo[ai]);
-			}
-			sliceHT->sip(ai, P_XS_AI16_CH_RAW, raw);
-			sliceHT->sfp(ai, P_XS_AI16_CH_EGU, egu);
+		if (verbose > 1 && ai == 0){
+			fprintf(stderr, "%s:%s: %d raw:%04x egu:%.3f eoff:%.3f eslo:%.3f\n",
+					DN, FN, ai, raw, egu, uut_p.eoff[ai], uut_p.eslo[ai]);
 		}
-		for (int di = 0; di < sp.DI_COUNT; ++di){
-			sliceHT->sip(di, P_XS_DI32_CH_RAW, psrc32[sp.DI_INDEX+di]);
-		}
+		sliceHT.sip(ai, P_XS_AI16_CH_RAW, raw);
+		sliceHT.sfp(ai, P_XS_AI16_CH_EGU, egu);
+	}
+	for (int di = 0; di < sp.DI_COUNT; ++di){
+		sliceHT.sip(di, P_XS_DI32_CH_RAW, psrc32[sp.DI_INDEX+di]);
+	}
 
-		epicsUInt32* p_SP32 = psrc32+sp.SP_INDEX;
+	epicsUInt32* p_SP32 = psrc32+sp.SP_INDEX;
 
-		for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
-			sliceHT->sip(spad, P_XS_SP32_SP, (epicsInt64)p_SP32[spad]);
-		}
+	for (int spad = 0; spad < sp.SP_COUNT && spad < SPAD_LIM; ++spad){
+		sliceHT.sip(spad, P_XS_SP32_SP, (epicsInt64)p_SP32[spad]);
+	}
 
-		unsigned wrv = p_SP32[SP2];
-		unsigned wrs = p_SP32[SP3];
+	unsigned wrv = p_SP32[SP2];
+	unsigned wrs = p_SP32[SP3];
 
-		sliceHT->sip(0, P_XS_SP32_WRVS, (wrv >> 28)&0x07);
-		sliceHT->sip(0, P_XS_SP32_WRVT, wrv & 0x0fffffff);
-		sliceHT->sip(0, P_XS_SP32_WRUS, getWrTs(wrs, wrv));
+	sliceHT.sip(0, P_XS_SP32_WRVS, (wrv >> 28)&0x07);
+	sliceHT.sip(0, P_XS_SP32_WRVT, wrv & 0x0fffffff);
+	sliceHT.sip(0, P_XS_SP32_WRUS, getWrTs(wrs, wrv));
 
-		sliceHT->callParamCallbacks();
-		for (int ai = 1; ai < sp.AI_COUNT; ++ai){
-			sliceHT->callParamCallbacks(ai);
-		}
-	}else{
-		fprintf(stderr, "%s::%s WARNING: row " FMTSZT " > available handlers " FMTSZT "\n",
-				DN, FN, row, rowHandlers.size());
+	sliceHT.callParamCallbacks();
+	for (int ai = 1; ai < sp.AI_COUNT; ++ai){
+		sliceHT.callParamCallbacks(ai);
 	}
 }
 void XrmSliceHT::task()
 {
+	std::vector<XrmSliceHT*>& rowHandlers = *rowHandlersMap[uut_id];
+
+	if (verbose){
+		fprintf(stderr, "%s uut_id %s, handlers:%lu\n",
+				FN, uut_id, rowHandlers.size());
+	}
+
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s::%s inside lock\n", DN, FN);
 
@@ -141,7 +181,9 @@ void XrmSliceHT::task()
 
 		SOE_HOLD_HEADER* header = (SOE_HOLD_HEADER*)ht_data;
 		for (size_t row = 0; header->pv_id != 0; ++row, ++header){
-			ht_slice(row, header, ht_data+header->data_offset);
+			if (row < rowHandlers.size()){
+				ht_slice(*rowHandlers[row], header, ht_data+header->data_offset);
+			}
 		}
 	}
 }
@@ -190,23 +232,9 @@ asynStatus XrmSliceHT::writeInt32Array(
 
 
 
-bool XrmSliceHT::exists(const char* portName)
-{
-	for (auto pht: rowHandlers){
-		if (strcmp(portName, pht->getPortName()) == 0){
-			return true;
-		}
-	}
-	return false;
-}
-
 XrmSliceHT* XrmSliceHT::factory(const char* portName, int addr)
 {
-	assert(!exists(portName));
-
-	XrmSliceHT* current = new XrmSliceHT(portName, addr);
-	rowHandlers.push_back(current);
-	return current;
+	return new XrmSliceHT(portName, addr);
 }
 
 extern "C" {
