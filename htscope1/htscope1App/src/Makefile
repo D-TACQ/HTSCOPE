@@ -10,8 +10,8 @@ USR_CPPFLAGS += -DUSE_TYPED_RSET
 # xxxRecord.h will be created from xxxRecord.dbd
 #DBDINC += xxxRecord
 
-# Install xxxSupport.dbd into <top>/dbd
-#DBD += xxxSupport.dbd
+# Install htscope1Support.dbd into <top>/dbd
+DBD += htscope1Support.dbd
 
 # Build an IOC support library
 LIBRARY_IOC += htscope1Support
