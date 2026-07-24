@@ -8,22 +8,21 @@ include $(TOP)/configure/CONFIG
 USR_CPPFLAGS += -DUSE_TYPED_RSET
 
 # xxxRecord.h will be created from xxxRecord.dbd
-DBDINC += xxxRecord
+#DBDINC += xxxRecord
 
 # Install xxxSupport.dbd into <top>/dbd
-DBD += xxxSupport.dbd
+#DBD += xxxSupport.dbd
 
 # Build an IOC support library
 LIBRARY_IOC += htscope1Support
 
 # Compile and add code to the support library
-htscope1Support_SRCS += xxxRecord.c
-htscope1Support_SRCS += devXxxSoft.c
+#htscope1Support_SRCS += xxxRecord.c
+#htscope1Support_SRCS += devXxxSoft.c
 
 # Link locally-provided code into the support library,
 # rather than directly into the IOC application, that
 # causes problems on Windows DLL builds
-htscope1Support_SRCS += dbSubExample.c
 htscope1Support_SRCS += devhtscope1Version.c
 htscope1Support_SRCS += htscope1Hello.c
 htscope1Support_SRCS += initTrace.c
@@ -45,8 +44,6 @@ DBD += htscope1.dbd
 
 # htscope1.dbd will include these files:
 htscope1_DBD += base.dbd
-htscope1_DBD += xxxSupport.dbd
-htscope1_DBD += dbSubExample.dbd
 htscope1_DBD += devhtscope1Version.dbd
 htscope1_DBD += htscope1Hello.dbd
 htscope1_DBD += initTrace.dbd
@@ -65,23 +62,23 @@ htscope1_LIBS += htscope1Support
 
 # To build SNL programs, SNCSEQ must be defined
 # in the <top>/configure/RELEASE file
-ifneq ($(SNCSEQ),)
+#ifneq ($(SNCSEQ),)
     # Build sncExample into htscope1Support
-    sncExample_SNCFLAGS += +r
-    htscope1_DBD += sncExample.dbd
+    #sncExample_SNCFLAGS += +r
+    #htscope1_DBD += sncExample.dbd
     # A .stt sequence program is *not* pre-processed:
-    htscope1Support_SRCS += sncExample.stt
-    htscope1Support_LIBS += seq pv
-    htscope1_LIBS += seq pv
+    #htscope1Support_SRCS += sncExample.stt
+    #htscope1Support_LIBS += seq pv
+    #htscope1_LIBS += seq pv
 
     # Build sncProgram as a standalone program
-    PROD_HOST += sncProgram
-    sncProgram_SNCFLAGS += +m
+    #PROD_HOST += sncProgram
+    #sncProgram_SNCFLAGS += +m
     # A .st sequence program *is* pre-processed:
-    sncProgram_SRCS += sncProgram.st
-    sncProgram_LIBS += seq pv
-    sncProgram_LIBS += $(EPICS_BASE_HOST_LIBS)
-endif
+    #sncProgram_SRCS += sncProgram.st
+    #sncProgram_LIBS += seq pv
+    #sncProgram_LIBS += $(EPICS_BASE_HOST_LIBS)
+#endif
 
 # Link QSRV (pvAccess Server) if available
 ifdef EPICS_QSRV_MAJOR_VERSION
