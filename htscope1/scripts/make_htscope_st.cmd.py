@@ -13,15 +13,17 @@ def print_preamble(args):
     args.fp.write("# preamble\n")
     args.fp.write(f'# command\n#{" ".join(sys.argv)}')
     args.fp.write(f"""
-dbLoadDatabase("./dbd/htscope1.dbd")
+< envPaths
+dbLoadDatabase("$(TOP)/dbd/htscope1.dbd")
 htscope1_registerRecordDeviceDriver(pdbbase)
 
+epicsEnvSet("DB_TOP", "$(TOP)/db")
 # Turn on asynTraceFlow and asynTraceError for global trace, i.e. no connected asynUser.
 #asynSetTraceMask("", 0, 17)
 drvAsynIPPortConfigure("HTS", "127.0.0.1:8843")
 dbLoadRecords("db/asynRecord.db","P={args.host}:,R=asyn:HTS,PORT=HTS,ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
 epicsEnvSet("STREAM_PROTOCOL_PATH","./protocols")
-dbLoadRecords("./db/hts_wrapper.db","HOST={args.host},SPORT=HTS")
+dbLoadRecords("$(DB_TOP)/hts_wrapper.db","HOST={args.host},SPORT=HTS")
 """)
 
 def _hands_out_outlinks():
@@ -57,11 +59,11 @@ def print_uut(uut, user, ufan, args):
 multiChannelScopeConfigure("{args.host}:{user}:{uut}", {args.nchan}, {args.ndata}, {wsize})
     """)
     tm = "TIMEOUT=0"
-    uutdb="./db/htscope1.db"
+    uutdb="$(DB_TOP)/htscope1.db"
     args.fp.write(f"""
 dbLoadRecords("{uutdb}","HOST={args.host},USER={user},UUT={uut},{tm},GFAN={global_link()},UFAN={ufan},NCHAN={args.nchan}")
 """)
-    chdb = "./db/htscope1_ch.db"
+    chdb = "$(DB_TOP)/htscope1_ch.db"
     for ix in range(args.nchan):
         ch = f"{ix+1:02}"
         args.fp.write(f"""
@@ -75,7 +77,7 @@ asynSetTraceMask("{args.host}:{user}:{uut}",0,0xff))
 
 def print_postamble(args):
     args.fp.write("\n# postamble\n")
-    maindb = "./db/htscope1_main.db"
+    maindb = "$(DB_TOP)/htscope1_main.db"
     uuts = ["", "", "", ""]
     uuts[:len(args.uuts)] = args.uuts
     uuts = ','.join(f'UUT{i+1}={value}' for i, value in enumerate(uuts))
