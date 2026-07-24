@@ -47,6 +47,7 @@ htscope1_DBD += base.dbd
 htscope1_DBD += devhtscope1Version.dbd
 htscope1_DBD += htscope1Hello.dbd
 htscope1_DBD += initTrace.dbd
+htscope1_DBD += htscope1Support.dbd
 
 # htscope1_registerRecordDeviceDriver.cpp derives from htscope1.dbd
 htscope1_SRCS += htscope1_registerRecordDeviceDriver.cpp
