@@ -21,7 +21,7 @@ epicsEnvSet("DB_TOP", "$(TOP)/db")
 # Turn on asynTraceFlow and asynTraceError for global trace, i.e. no connected asynUser.
 #asynSetTraceMask("", 0, 17)
 drvAsynIPPortConfigure("HTS", "127.0.0.1:8843")
-dbLoadRecords("db/asynRecord.db","P={args.host}:,R=asyn:HTS,PORT=HTS,ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
+dbLoadRecords("$(DB_TOP)/asynRecord.db","P={args.host}:,R=asyn:HTS,PORT=HTS,ADDR=0,IMAX=100,OMAX=100,TB3=0,TIB0=0")
 epicsEnvSet("STREAM_PROTOCOL_PATH","$(TOP)/protocols")
 dbLoadRecords("$(DB_TOP)/hts_wrapper.db","HOST={args.host},SPORT=HTS")
 """)
