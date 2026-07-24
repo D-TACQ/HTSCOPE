@@ -1,0 +1,4 @@
+t+https://github.com/D-TACQ/acq400_hapi@dddf7404165198d5748902bd2ca0e2b5018a6831#egg=acq400_hapi
+numpy==2.5.1
+pyepics==3.5.10
+pyparsing==3.3.2
