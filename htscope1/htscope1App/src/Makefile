@@ -61,6 +61,12 @@ htscope1_LIBS += asyn
 # Link in the code from our support library
 htscope1_LIBS += htscope1Support
 
+htscope1_DBD += softIocPVX.dbd
+htscope1_DBD += pvxsIoc.dbd
+
+htscope1_LIBS += pvxs
+htscope1_LIBS += pvxsIoc
+
 # To build SNL programs, SNCSEQ must be defined
 # in the <top>/configure/RELEASE file
 #ifneq ($(SNCSEQ),)
