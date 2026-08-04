@@ -40,13 +40,15 @@ void print(SOE_LUT& lut, bool verbose)
 void print(SOE_HOLD_HEADER* ht, bool verbose)
 {
 	for (int row = 0; row < SOE_HLD_ROWS; ++row){
-		if (!ht[row].pv_id){
+		if (!ht[row].lut_row.pv_id){
 			break;
 		}
 
-		printf("%2d: %10d 0x%08x %3d %2d %2d %llu\n",
+		printf("%2d: %10d $%04x %6d 0x%08x %3d %2d %2d %llu\n",
 			row,
-			ht[row].pv_id,
+			ht[row].lut_row.pv_id,
+			ht[row].lut_row.event,
+			ht[row].lut_row.offset_us,
 			ht[row].client_data,
 			ht[row].data_offset,
 			ht[row].ai_count,
@@ -55,7 +57,7 @@ void print(SOE_HOLD_HEADER* ht, bool verbose)
 	}
 
 	for (int row = 0; row < SOE_HLD_ROWS; ++row){
-		if (!ht[row].pv_id){
+		if (!ht[row].lut_row.pv_id){
 			break;
 		}
 
