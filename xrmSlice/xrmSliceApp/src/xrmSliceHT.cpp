@@ -235,30 +235,11 @@ asynStatus XrmSliceHT::writeInt32Array(
 */
     if (function == P_HT_RAW_INPUT) {
 	lock();
-	if (ht_buf_len == 0){
-		ht_buf_len = nElements;
-	}
-	if (ht_data == 0){
-		ht_data = (PU32)value;
-	}
+	ht_buf_len = nElements;
+	ht_data = (PU32)value;
 	unlock();
-	if (ht_buf_len != nElements || ht_data != (PU32)value){
-		if (ht_buf_len != nElements){
-			fprintf(stderr,
-				"%s: ht_buf_len:" FMTSZT " != nElements:" FMTSZT " "
-				"probably a disconnect: discard\n",
-				FN, ht_buf_len, nElements);
-		}
-		if (ht_data != (PU32)value){
-			fprintf(stderr,
-				"%s: ht_data:%p != value:%p "
-				"probably a disconnect: discard\n",
-				FN, ht_data, (PU32)value);
-		}
-		// no sleep, this shouldn't happen again..
-	}else{
-		epicsEventSignal(eventId);
-	}
+
+	epicsEventSignal(eventId);
     } else {
         // Fall back to base class for standard parameters
         status = XrmSliceCommon::writeInt32Array(pasynUser, value, nElements);
