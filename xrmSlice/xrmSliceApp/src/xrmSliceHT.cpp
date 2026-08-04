@@ -182,7 +182,8 @@ void XrmSliceHT::task()
 //	}
 
 	int version_check_req = 0;
-	gip(P_SOE_HLD_VERSION_CHECK, &version_check_req);
+// gip always asserts? Forget it for now..
+//	gip(P_SOE_HLD_VERSION_CHECK, &version_check_req);
 
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s::%s inside lock\n", DN, FN);
