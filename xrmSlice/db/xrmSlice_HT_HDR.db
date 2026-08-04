@@ -13,7 +13,7 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:EVENT")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_ENT_EVENT")
     field(SCAN, "I/O Intr")
-    field(EGU,  "u32")
+    field(EGU,  "")
 }
 
 
@@ -22,7 +22,7 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:OFFSET_US")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_ENT_OFFSET_US")
     field(SCAN, "I/O Intr")
-    field(EGU,  "u32")
+    field(EGU,  "μs")
 }
 
 
