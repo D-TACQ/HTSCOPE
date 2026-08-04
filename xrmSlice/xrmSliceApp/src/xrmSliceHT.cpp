@@ -57,7 +57,7 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 
 	createParam(PS_SOE_HLD_ENT_PV_ID, 	asynParamInt32, &P_SOE_HLD_ENT_PV_ID);
 	createParam(PS_SOE_HLD_ENT_EVENT,	asynParamInt32, &P_SOE_HLD_ENT_EVENT);
-	createParam(PS_SOE_HLD_ENT_EVENT,	asynParamInt32, &P_SOE_HLD_ENT_OFFSET_US);
+	createParam(PS_SOE_HLD_ENT_OFFSET_US,	asynParamInt32, &P_SOE_HLD_ENT_OFFSET_US);
 	createParam(PS_SOE_HLD_ENT_CLIDAT, 	asynParamInt32, &P_SOE_HLD_ENT_CLIDAT);
 	createParam(PS_SOE_HLD_ENT_TS, 		asynParamInt32, &P_SOE_HLD_ENT_TS);
 	createParam(PS_SOE_HLD_ENT_DATA_OFFSET, asynParamInt32, &P_SOE_HLD_ENT_DATA_OFFSET);
