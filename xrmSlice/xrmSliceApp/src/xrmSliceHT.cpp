@@ -31,14 +31,14 @@ bool XrmSliceHT::registerRowHandler()
 		}
 	}
 	XrmSliceHT_V* row_handlers = rowHandlersMap[uut_id];
-	fprintf(stderr, "%s %s row_handlers:%p push_back %p size:%lu before\n",
+	fprintf(stderr, "%s %s row_handlers:%p push_back %p size:" FMTSZT " before\n",
 			FN, uut_id, row_handlers, this, row_handlers->size());
 	row_handlers->push_back(this);
-	fprintf(stderr, "%s %s row_handlers:%p push_back %p size:%lu after\n",
+	fprintf(stderr, "%s %s row_handlers:%p push_back %p size:" FMTSZT " after\n",
 				FN, uut_id, row_handlers, this, row_handlers->size());
 
 	if (verbose > 1){
-		fprintf(stderr, "%s %s iterate map count:%lu my_handlers:%lu\n",
+		fprintf(stderr, "%s %s iterate map count:" FMTSZT " my_handlers:" FMTSZT "\n",
 				FN, portName, rowHandlersMap.size(), row_handlers->size());
 		for (auto const &ent: rowHandlersMap){
 			fprintf(stderr, "%s map[%s] -> %p\n", FN, ent.first.c_str(), ent.second);
@@ -88,7 +88,7 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 		}
 	}
 	if (verbose){
-		fprintf(stderr, "%s pn:%s uut_id:%s handlers.size:%lu\n",
+		fprintf(stderr, "%s pn:%s uut_id:%s handlers.size:" FMTSZT "\n",
 				FN, portName, uut_id, rowHandlersMap[uut_id]->size());
 	}
 }
@@ -165,7 +165,7 @@ void XrmSliceHT::task()
 	std::vector<XrmSliceHT*>& rowHandlers = *rowHandlersMap[uut_id];
 
 	if (verbose){
-		fprintf(stderr, "%s uut_id %s, handlers:%lu\n",
+		fprintf(stderr, "%s uut_id %s, handlers:" FMTSZT "\n",
 				FN, uut_id, rowHandlers.size());
 	}
 
@@ -222,7 +222,7 @@ asynStatus XrmSliceHT::writeInt32Array(
 	if (ht_buf_len != nElements || ht_data != (PU32)value){
 		if (ht_buf_len != nElements){
 			fprintf(stderr,
-				"%s: ht_buf_len:%u != nElements:%u "
+				"%s: ht_buf_len:" FMTSZT " != nElements:" FMTSZT " "
 				"probably a disconnect: discard\n",
 				FN, ht_buf_len, nElements);
 		}
