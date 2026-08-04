@@ -181,6 +181,9 @@ void XrmSliceHT::task()
 		fprintf(stderr, "%s P_SOE_HLD_VERSION_CHECK %d\n", FN, P_SOE_HLD_VERSION_CHECK);
 //	}
 
+	int version_check_req = 0;
+	gip(P_SOE_HLD_VERSION_CHECK, &version_check_req);
+
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s::%s inside lock\n", DN, FN);
 
@@ -192,9 +195,6 @@ void XrmSliceHT::task()
 		// decode new HT, do a lot of sips(, addr=ENTRY)
 
 		SOE_HOLD_HEADER* header = (SOE_HOLD_HEADER*)ht_data;
-
-		int version_check_req = 0;
-		gip(P_SOE_HLD_VERSION_CHECK, &version_check_req);
 
 		if (version_check_req && header->lut_row.pv_id != 0 && getVersion(*header) != SOE_HOLD_HEADER_VERSION){
 			sip(0, P_SOE_HLD_VERSION_RECEIVED, getVersion(*header));
