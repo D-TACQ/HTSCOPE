@@ -129,7 +129,7 @@ dbLoadRecords("$(DB_TOP)/xrmSliceSP_PM_8.db", "{hupcn}")""")
                 args.fp.write(f"""
 dbLoadRecords("$(DB_TOP)/xrmSliceSP_PM.db", "{hupcn},ADDR={sp},SP={sp:02d}")""")
 
-HT_HEADER_SIZE = 24
+HT_HEADER_SIZE = 32             # sizeof(SOE_HOLD_HEADER) .. @@todo make it a PV
 
 def print_peer_ht(args, ii, peer, CHFMT):
     geo = args.geometries[ii]
