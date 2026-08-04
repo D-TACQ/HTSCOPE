@@ -121,7 +121,7 @@ bool XrmSliceHT::ready_to_slice() {
 void XrmSliceHT::ht_slice(XrmSliceHT& sliceHT, SOE_HOLD_HEADER* header, epicsUInt32* sample)
 {
 	const SamplePrams& sp = uut_p.sample_prams;
-	sliceHT.sip(0, P_SOE_HLD_ENT_PV_ID, header->pv_id);
+	sliceHT.sip(0, P_SOE_HLD_ENT_PV_ID, header->lut_row.pv_id);
 	// @@todo now do the rest
 
 	epicsUInt32* psrc32 = sample;
@@ -180,7 +180,7 @@ void XrmSliceHT::task()
 		// decode new HT, do a lot of sips(, addr=ENTRY)
 
 		SOE_HOLD_HEADER* header = (SOE_HOLD_HEADER*)ht_data;
-		for (size_t row = 0; header->pv_id != 0; ++row, ++header){
+		for (size_t row = 0; header->lut_row.pv_id != 0; ++row, ++header){
 			if (row < rowHandlers.size()){
 				ht_slice(*rowHandlers[row], header, ht_data+header->data_offset);
 			}
