@@ -23,6 +23,8 @@
 #define PS_HT_RAW_INPUT	"HT_RAW_INPUT"   /** single port==0 single addr=0 */
 
 #define PS_SOE_HLD_ENT_PV_ID    	"SOE_HLD_ENT_PV_ID"
+#define PS_SOE_HLD_ENT_EVENT		"SOE_HLD_ENT_EVENT"
+#define PS_SOE_HLD_ENT_OFFSET_US	"SOE_HLD_ENT_OFFSET_US"
 #define PS_SOE_HLD_ENT_CLIDAT    	"SOE_HLD_ENT_CLIDAT"
 #define PS_SOE_HLD_ENT_TS        	"SOE_HLD_ENT_TS"
 #define PS_SOE_HLD_ENT_DATA_OFFSET 	"SOE_HLD_ENT_DATA_OFFSET"
@@ -52,6 +54,8 @@ protected:
 	epicsUInt32* ht_data;
 
 	int P_SOE_HLD_ENT_PV_ID;
+	int P_SOE_HLD_ENT_EVENT;
+	int P_SOE_HLD_ENT_OFFSET_US;
 	int P_SOE_HLD_ENT_CLIDAT;
 	int P_SOE_HLD_ENT_TS;
 	int P_SOE_HLD_ENT_DATA_OFFSET;

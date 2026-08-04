@@ -56,6 +56,8 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 	asynStatus status;
 
 	createParam(PS_SOE_HLD_ENT_PV_ID, 	asynParamInt32, &P_SOE_HLD_ENT_PV_ID);
+	createParam(PS_SOE_HLD_ENT_EVENT,	asynParamInt32, &P_SOE_HLD_ENT_EVENT);
+	createParam(PS_SOE_HLD_ENT_EVENT,	asynParamInt32, &P_SOE_HLD_ENT_OFFSET_US);
 	createParam(PS_SOE_HLD_ENT_CLIDAT, 	asynParamInt32, &P_SOE_HLD_ENT_CLIDAT);
 	createParam(PS_SOE_HLD_ENT_TS, 		asynParamInt32, &P_SOE_HLD_ENT_TS);
 	createParam(PS_SOE_HLD_ENT_DATA_OFFSET, asynParamInt32, &P_SOE_HLD_ENT_DATA_OFFSET);
@@ -122,6 +124,8 @@ void XrmSliceHT::ht_slice(XrmSliceHT& sliceHT, SOE_HOLD_HEADER* header, epicsUIn
 {
 	const SamplePrams& sp = uut_p.sample_prams;
 	sliceHT.sip(0, P_SOE_HLD_ENT_PV_ID, header->lut_row.pv_id);
+	sliceHT.sip(0, P_SOE_HLD_ENT_EVENT, header->lut_row.event);
+	sliceHT.sip(0, P_SOE_HLD_ENT_OFFSET_US, header->lut_row.offset_us);
 	// @@todo now do the rest
 
 	epicsUInt32* psrc32 = sample;
