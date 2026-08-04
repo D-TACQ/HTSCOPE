@@ -180,6 +180,11 @@ void XrmSliceHT::task()
 		// decode new HT, do a lot of sips(, addr=ENTRY)
 
 		SOE_HOLD_HEADER* header = (SOE_HOLD_HEADER*)ht_data;
+		if (getVersion(*header) != SOE_HOLD_HEADER_VERSION){
+			fprintf(stderr, "ERROR: incoming SOE_HOLD_HEADER version:%d want %d\n",
+					getVersion(*header), SOE_HOLD_HEADER_VERSION);
+			continue;
+		}
 		for (size_t row = 0; header->lut_row.pv_id != 0; ++row, ++header){
 			if (row < rowHandlers.size()){
 				ht_slice(*rowHandlers[row], header, ht_data+header->data_offset);
