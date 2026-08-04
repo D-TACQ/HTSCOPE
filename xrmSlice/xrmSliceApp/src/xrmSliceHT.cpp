@@ -62,6 +62,10 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 	createParam(PS_SOE_HLD_ENT_TS, 		asynParamInt32, &P_SOE_HLD_ENT_TS);
 	createParam(PS_SOE_HLD_ENT_DATA_OFFSET, asynParamInt32, &P_SOE_HLD_ENT_DATA_OFFSET);
 
+	createParam(PS_SOE_HLD_VERSION_CHECK,	asynParamInt32, &P_SOE_HLD_VERSION_CHECK);
+	createParam(PS_SOE_HLD_VERSION_REQUIRED,asynParamInt32, &P_SOE_HLD_VERSION_REQUIRED);
+	createParam(PS_SOE_HLD_VERSION_RECEIVED,asynParamInt32, &P_SOE_HLD_VERSION_RECEIVED);
+
 	createParam(PS_XS_AI16_CH_RAW,	asynParamInt32, &P_XS_AI16_CH_RAW);
 	createParam(PS_XS_AI16_CH_EGU,	asynParamFloat64, &P_XS_AI16_CH_EGU);
 	createParam(PS_XS_DI32_CH_RAW,	asynParamInt32, &P_XS_DI32_CH_RAW);
@@ -71,6 +75,9 @@ XrmSliceHT::XrmSliceHT(const char *portName, int addr /* ai_cols */ ):
 	createParam(PS_XS_SP32_WRUS, 	asynParamInt64, &P_XS_SP32_WRUS);
 
 	createParam(PS_HT_RAW_INPUT,	asynParamInt32Array,  &P_HT_RAW_INPUT);
+
+
+	sip(0, P_SOE_HLD_VERSION_REQUIRED, SOE_HOLD_HEADER_VERSION);
 
 	if (registerRowHandler()){
 	/* Create the thread that computes the waveforms in the background */
@@ -184,7 +191,12 @@ void XrmSliceHT::task()
 		// decode new HT, do a lot of sips(, addr=ENTRY)
 
 		SOE_HOLD_HEADER* header = (SOE_HOLD_HEADER*)ht_data;
-		if (getVersion(*header) != SOE_HOLD_HEADER_VERSION){
+
+		int version_check_req = 0;
+		gip(P_SOE_HLD_VERSION_CHECK, &version_check_req);
+
+		if (version_check_req && header->lut_row.pv_id != 0 && getVersion(*header) != SOE_HOLD_HEADER_VERSION){
+			sip(0, P_SOE_HLD_VERSION_RECEIVED, getVersion(*header));
 			fprintf(stderr, "ERROR: incoming SOE_HOLD_HEADER version:%d want %d\n",
 					getVersion(*header), SOE_HOLD_HEADER_VERSION);
 			continue;

@@ -50,3 +50,33 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:DATA_OFFSET")
     field(SCAN, "I/O Intr")
     field(EGU,  "u32")
 }
+
+
+
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:VER:REQ")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_VERSION_REQUIRED")
+    field(SCAN, "I/O Intr")
+    field(EGU,  "u32")
+    field(DESC, "HT version of this exe")
+}
+
+record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:VER:RX")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_VERSION_RECEIVED")
+    field(SCAN, "I/O Intr")
+    field(EGU,  "u32")
+    field(DESC, "HT version received")
+}
+
+record(bo, "${HOST}:${UUT}:SOE:${ROW}:HDR:VER:CHECK")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_VERSION_CHECK")
+    field(ZNAM, "NOCHECK")
+    field(ONAM, "CHECK")
+    field(DESC, "Enable checking")
+}
+
