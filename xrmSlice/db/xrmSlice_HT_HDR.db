@@ -78,5 +78,7 @@ record(bo, "${HOST}:${UUT}:SOE:${ROW}:HDR:VER:CHECK")
     field(ZNAM, "NOCHECK")
     field(ONAM, "CHECK")
     field(DESC, "Enable checking")
+    field(PINI, "YES")
+    field(VAL,  "0")
 }
 

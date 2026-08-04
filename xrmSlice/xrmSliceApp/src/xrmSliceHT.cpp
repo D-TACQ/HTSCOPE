@@ -175,10 +175,11 @@ void XrmSliceHT::task()
 {
 	std::vector<XrmSliceHT*>& rowHandlers = *rowHandlersMap[uut_id];
 
-	if (verbose){
+//	if (verbose){
 		fprintf(stderr, "%s uut_id %s, handlers:" FMTSZT "\n",
 				FN, uut_id, rowHandlers.size());
-	}
+		fprintf(stderr, "%s P_SOE_HLD_VERSION_CHECK %d\n", FN, P_SOE_HLD_VERSION_CHECK);
+//	}
 
 	for (int ii = 0; wait_and_lock(); unlock(), ++ii){
 		if (verbose) fprintf(stderr, "%s::%s inside lock\n", DN, FN);
