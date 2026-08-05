@@ -11,3 +11,15 @@ record(aao, "${HOST}:${UUT}:SOE_HLD")
 	field(NELM, "$(HT_BUF_NELM)")
 }
 
+record(bo, "${HOST}:${UUT}:SOE:00:HDR:VER:CHECK")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_VERSION_CHECK")
+    field(ZNAM, "NOCHECK")
+    field(ONAM, "CHECK")
+    field(DESC, "Enable checking")
+    field(PINI, "YES")
+    field(VAL,  "0")
+}
+
+
