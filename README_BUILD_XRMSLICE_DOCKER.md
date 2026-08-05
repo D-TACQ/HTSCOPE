@@ -49,9 +49,19 @@ $ docker run -it --network host --rm --name xrmSlicer --entrypoint /bi
 ```
 
 6. Run these commands in the image (the run command will drop you in to a shell on the container automatically):
+
+Where `uut` is the UUT name used by epics (acq2206_(sn+500)), `ip` is the ip address in dotted quad notation and `:44000` is the literal port number used by the embedded `xrmIoc`
+```
+python scripts/make_xrmslice_st.cmd.py --output iocBoot/iocxrmSlice/st2.cmd UUT1,ip1:44000 [UUT2,ip2:44000]
+```
+
+
+
+example
 ```
 python scripts/make_xrmslice_st.cmd.py --output iocBoot/iocxrmSlice/st2.cmd acq2206_588,10.12.197.110:44000 acq2206_598,10.12.197.116:44000 acq2206_501,10.12.197.89:44000
 ```
+Remember to replace the python script UUT and IP address args with your UUTs/IPs.
 
 ```
 cd /opt/xrmSlice/iocBoot/iocxrmSlice
@@ -66,4 +76,4 @@ epics> dbl
 And you will see your records...
 ```
 
-Remember to replace the python script UUT and IP address args with your UUTs/IPs.
+
