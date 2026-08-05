@@ -71,7 +71,7 @@ record(longin, "${HOST}:${UUT}:SOE:${ROW}:HDR:VER:RX")
     field(DESC, "HT version received")
 }
 
-record(bo, "${HOST}:${UUT}:SOE:${ROW}:HDR:VER:CHECK")
+record(bo, "${HOST}:${UUT}:SOE:00:HDR:VER:CHECK")
 {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PORT),0,$(TIMEOUT))SOE_HLD_VERSION_CHECK")
