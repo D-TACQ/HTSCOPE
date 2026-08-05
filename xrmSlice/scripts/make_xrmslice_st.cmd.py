@@ -60,6 +60,7 @@ def getSampleGeometry(peer):
     return sg
 
 def print_preamble(args):
+    callbackQueueSize = int(os.getenv("XRMSLICE_CBQS", 5000))
     if args.output == '-':
         args.fp = sys.stdout
     else:
@@ -76,6 +77,7 @@ def print_preamble(args):
 < envPaths
 epicsEnvSet("DB_TOP", "$(TOP)/db")
 epicsEnvSet("EPICS_PVA_NAME_SERVERS", "{peer_ips_string}")
+callbackSetQueueSize({callbackQueueSize})
 dbLoadDatabase("$(TOP)/dbd/xrmSlice.dbd")
 xrmSlice_registerRecordDeviceDriver(pdbbase)
 
