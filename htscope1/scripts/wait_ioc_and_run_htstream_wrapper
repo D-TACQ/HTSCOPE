@@ -1,10 +1,10 @@
 #!/bin/bash
 
-while [ ! -e records.dbl ]; do
+while [ ! -e /opt/htscope1/iocBoot/iochtscope1/records.dbl ]; do
     echo waiting for ioc
     sleep 1
 done
 
-unbuffer ./scripts/run_htstream_wrapper.py
+unbuffer /opt/htscope1/scripts/run_htstream_wrapper.py
 
 

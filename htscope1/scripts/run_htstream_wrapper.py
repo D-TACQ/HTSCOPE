@@ -40,7 +40,7 @@ def run_process_with_live_output(command):
             pp.send_signal(signal.SIGINT)
             pp.wait()
 
-    return pp.poll()
+    return pp.wait()
 
 
 # get HOST:USER for local ioc
