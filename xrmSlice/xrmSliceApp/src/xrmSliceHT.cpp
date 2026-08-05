@@ -236,10 +236,16 @@ asynStatus XrmSliceHT::writeInt32Array(
     if (function == P_HT_RAW_INPUT) {
 	lock();
 	ht_buf_len = nElements;
+	if (ht_data != 0 && ht_data != (PU32)value){
+		fprintf(stderr, "%s: WARNING: unexpected ht_data:%p != value:%p\n",
+				FN, ht_data, (PU32)value);
+	}
 	ht_data = (PU32)value;
 	unlock();
 
-	epicsEventSignal(eventId);
+	if (ht_buf_len > sizeof(SOE_HOLD_HEADER)){
+		epicsEventSignal(eventId);
+	}
     } else {
         // Fall back to base class for standard parameters
         status = XrmSliceCommon::writeInt32Array(pasynUser, value, nElements);
