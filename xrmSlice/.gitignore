@@ -36,5 +36,14 @@ db/xrmSliceAI_HT_16CH.db
 db/xrmSliceAI_HT_32CH.db
 db/xrmSliceSP_HT_8.db
 db/xrmSliceSP_PM_8.db
+db/xrmSliceAI_HT_128CH.db
+db/xrmSliceAI_PM_128CH.db
+iocBoot/iocxrmSlice/records.dbl
+iocBoot/iocxrmSlice/st2.cmd
+iocBoot/iocxrmSlice/st3.cmd
+iocBoot/iocxrmSlice/xrm.log2
+latex/
+vg.err
+xrmSliceApp/src/portsplit
 
 
