@@ -32,7 +32,7 @@ git branch --remote
 git checkout xrmSlice
 ```
 
-3. copy dockerfile and the dockerignore files attached to this mail into `ACQ400_ESW_TOP` directory
+3. copy dockerfile and the dockerignore files from `./xrmSlice` into `ACQ400_ESW_TOP` directory
 
 ```
 cp xrmSlice/Dockerfile.* .
@@ -53,6 +53,7 @@ $ docker run -it --network host --rm --name xrmSlicer --entrypoint /bi
 python scripts/make_xrmslice_st.cmd.py --output iocBoot/iocxrmSlice/st2.cmd acq2206_588,10.12.197.110:44000 acq2206_598,10.12.197.116:44000 acq2206_501,10.12.197.89:44000
 ```
 
+```
 cd /opt/xrmSlice/iocBoot/iocxrmSlice
 ../../bin/linux-x86_64/xrmSlice st2.cmd
 ```
