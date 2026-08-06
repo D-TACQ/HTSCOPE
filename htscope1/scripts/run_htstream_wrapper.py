@@ -75,7 +75,7 @@ while True:
         STATUS.put(f'run_request shot {shot}')
         print(f'run_request shot {shot}')
         secs = int(SHOT_TIME.get())
-        job = f'unbuffer ./scripts/ht_stream.py --concat=999999 --secs={secs} {UUTS}'
+        job = f'unbuffer ./scripts/ht_stream.py --stream_path /opt/AFHBA404/STREAM/rtm-t-stream-disk --concat=999999 --secs={secs} {UUTS}'
         STATUS.put(f'run job {shot}')
         print(f'run job {shot} {job}')
         rc = run_process_with_live_output(job)
