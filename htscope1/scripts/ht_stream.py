@@ -70,7 +70,7 @@ class HTS(dict):
 
         if args.delete:
             log.warning(f'Erasing /mnt/afhba.*')
-            cmd = 'sudo rm  -rf /mnt/afhba.*'
+            cmd = 'rm  -rf /mnt/afhba.*'
             os.system(cmd)
 
         if args.secs:
@@ -214,7 +214,7 @@ class Stream():
         pid = afhba404.get_stream_pid(self.lport)
         if pid == 0: return
         log.warning(f'Killing afhba.{self.lport} with pid: {pid}')
-        cmd = 'sudo kill -9 {}'.format(pid)
+        cmd = 'kill -9 {}'.format(pid)
         os.system(cmd)
         time.sleep(1)
         pid = afhba404.get_stream_pid(self.lport)
