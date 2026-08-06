@@ -82,7 +82,8 @@ while True:
         print(f'htstream complete rc {rc}')
         RUNSTOP.put(0)
     else:
-        print(f'waiting {loopcount}')
+        if loopcount % 30 == 0:
+            print(f'waiting {loopcount}')
 
     time.sleep(0.5)
 
