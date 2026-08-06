@@ -296,9 +296,13 @@ def run_main(args):
 
     log.debug(args)
     hts = HTS(args.uuts, args.map, args.outroot)
+    log.debug("configging host")
     hts.config_host(args)
+    log.debug("configging uuts")
     hts.config_uuts(args)
+    log.debug("initting streams")
     hts.init_streams(args)
+    log.debug("starting uuts")
     hts.start_uuts()
 
     t0 = 0

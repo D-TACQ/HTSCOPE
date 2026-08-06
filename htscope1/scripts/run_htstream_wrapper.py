@@ -26,6 +26,7 @@ def run_process_with_live_output(command):
             if not output:
                 break
             output = output.strip()
+            print(output)
 
             if output.startswith("runtime"):
                 state = dict(item.split("=") for item in output.split())
