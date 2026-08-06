@@ -372,7 +372,6 @@ def die(message):
     os._exit(1)
 
 def map_type(arg):
-    log.debug('map_type')
     mapdef = {}
     for mapval in arg.upper().split('/'):
         host, rport, chans = mapval.split(':')
