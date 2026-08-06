@@ -105,6 +105,7 @@ class HTS(dict):
             stream.init_stream(args)
 
     def start_uut(self, uut):
+        log.debug('start_uut')
         self.get_cstate(uut)
         if uut.cstate != 'IDLE':
             uut.s0.streamtonowhered = "stop"
@@ -112,9 +113,11 @@ class HTS(dict):
         uut.s0.streamtonowhered = "start"
 
     def get_cstate(self, uut):
+        log.debug('get_cstate')
         uut.cstate = pv(uut.s0.CONTINUOUS_STATE)
 
     def start_uuts(self):
+        log.debug('start_uuts')
 
         @background_task
         def update_wrapper(uut):
@@ -137,6 +140,7 @@ class HTS(dict):
         time.sleep(1)
 
     def stop_uuts(self):
+        log.debug('stop_uuts')
 
         @background_task
         def wrapper(uut):
@@ -157,22 +161,26 @@ class HTS(dict):
         pass # TODO
 
     def state_all(self, state='IDLE', exclude=[]):
+        log.debug('state_all')
         for uut in self.uuts.values():
             if uut.hostname in exclude: continue
             if uut.cstate != state: return False
         return True
 
     def state_any(self, state='IDLE'):
+        log.debug('state_any')
         for uut in self.uuts.values():
             if uut.cstate == state: return True
         return False
 
     def all_ended(self):
+        log.debug('all_ended')
         for stream in self.streams:
             if stream.state.STATUS != 'STOP_DONE': return False
         return True
 
     def uut_cstate(self):
+        log.debug('uut_cstate')
         return [self.uuts[name].cstate for name in self.uuts]
 
 
@@ -202,6 +210,7 @@ class Stream():
 
     def kill_if_active(self):
         """Ensure no existing stream is running on port"""
+        log.debug('kill_if_active')
         pid = afhba404.get_stream_pid(self.lport)
         if pid == 0: return
         log.warning(f'Killing afhba.{self.lport} with pid: {pid}')
@@ -213,7 +222,7 @@ class Stream():
         die(f'Stream {self.lport} failed to die')
 
     def setup_aggregators(self):
-
+        log.debug('setup_aggregators')
         agg_str = f'sites={self.sites_str} on'
         self.uut[self.rport].aggregator = agg_str
         self.uut[self.rport].spad = bool(self.uut.spadlen)
@@ -224,7 +233,7 @@ class Stream():
         return afhba404.get_stream_state(self.lport)
 
     def init_stream(self, args):
-        log.debug('initng stream')
+        log.debug('init_stream')
 
         @background_task
         def update_wrapper():
@@ -359,6 +368,7 @@ def die(message):
     os._exit(1)
 
 def map_type(arg):
+    log.debug('map_type')
     mapdef = {}
     for mapval in arg.upper().split('/'):
         host, rport, chans = mapval.split(':')
@@ -381,7 +391,7 @@ def get_parser():
     parser.add_argument('--delete', default=1, type=int, help='delete /mnt/afhba.* ')
     parser.add_argument('--concat', default=0, type=int, help='concatenate buffers')
 
-    parser.add_argument('--loglevel', default=20, type=int, help="loglevel (<= 10 for debug)")
+    parser.add_argument('--loglevel', default=9, type=int, help="loglevel (<= 10 for debug)")
 
     parser.add_argument('--check_spad', default=0, type=int, help='check spad is sequential')
 
