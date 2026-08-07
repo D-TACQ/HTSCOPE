@@ -60,6 +60,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 	createParam(PS_EOFF,             	asynParamFloat64Array,      &P_EOFF);
 	createParam(PS_EGU,  				asynParamInt32,             &P_EGU);
 	createParam(PS_DEBUG,               asynParamInt32,             &P_DEBUG);
+	createParam(PS_EVENTINDEX,               asynParamInt32Array,             &P_EVENTINDEX);
 
 	setIntegerParam(P_NCHAN, 			nchan);
 	setIntegerParam(P_NSAM, 			nsam);
@@ -89,11 +90,16 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
         return;
     }
 
+    EVENTINDEX = new epicsInt32[64];
     ESLO = new epicsFloat64[nchan];
     EOFF = new epicsFloat64[nchan];
     for (unsigned ic = 0; ic < nchan; ++ic){
         ESLO[ic] = 10.0/0x7fff;
         EOFF[ic] = 0;
+
+    }
+    for (unsigned ic = 0; ic < 64; ++ic){
+	EVENTINDEX[ic] = 0;
     }
 }
 
@@ -131,6 +137,7 @@ void MultiChannelScope::task(void)
 		if (mmap_active && refresh){
 			get_tb();
 			get_data();
+			process_data();
 			status = setIntegerParam(P_REFRESHr, refresh = 0);
 			printf("%s %s rc %d\n", __FUNCTION__, "setIntegerParam", status);
 #if 0
@@ -256,6 +263,11 @@ void MultiChannelScope::get_data() {
 	printf("%s 99 nchan:%d nsam:%d\n", __FUNCTION__, nchan, nsam);
 }
 
+void MultiChannelScope::process_data() {
+    double nevent = 0;
+
+    printf("%s 99 nevent:%d\n", __FUNCTION__, nevent);
+}
 
 void MultiChannelScope::get_tb() {
 	double fs;                                   // pick a reasonable default

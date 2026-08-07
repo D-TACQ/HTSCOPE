@@ -25,9 +25,10 @@
 #define PS_EOFF			"EOFF"				/* asynFloat64,     r/w */
 #define PS_EGU			"EGU"				/* asynInt32,       r/w */
 #define PS_DEBUG		"DEBUG"				/* asynInt32,       r/w */
-
+#define PS_EVENTINDEX		"EVENTINDEX"			/* asynInt32,       r/w */
 typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;
+typedef epicsInt32   EVTYPE;
 
 void runTask(void *drvPvt);
 
@@ -66,6 +67,7 @@ private:
 	int P_EOFF;
 	int P_EGU;
 	int P_DEBUG;
+	int P_EVENTINDEX;
 
     // Add private members for scope data
     unsigned long data_len;
@@ -83,6 +85,7 @@ private:
 
     epicsFloat64* ESLO;
     epicsFloat64* EOFF;
+    epicsInt32* EVENTINDEX;
     int EGU;                    /* EGU if set, RAW if not set */
 
     void get_tb();
