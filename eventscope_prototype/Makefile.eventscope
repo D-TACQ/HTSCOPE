@@ -1,0 +1,8 @@
+all:
+	g++ -O3 -Wall -Wextra eventscope.cpp -o eventscope
+
+data:
+	python generate_mock_data.py
+
+clean:
+	rm eventscope test_01_no_events.bin test_02_spaced_events.bin test_03_overlap_events.bin
