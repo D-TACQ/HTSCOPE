@@ -90,6 +90,7 @@ private:
 
     void get_tb();
     void get_data();
+    void process_data();
     void init_data();
     bool mmap_uut_data();   // return True on success
     void unmap_uut_data();
