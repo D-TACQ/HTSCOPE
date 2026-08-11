@@ -30,7 +30,8 @@ typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;
 typedef epicsInt32   EVTYPE;
 
-void runTask(void *drvPvt);
+void runDisplayTask(void *drvPvt);
+void runSearchTask(void *drvPvt);
 
 class MultiChannelScope : public asynPortDriver {
 public:
@@ -43,7 +44,8 @@ public:
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,
                                         size_t nElements);
-    void task(void);
+    void displayTask(void);
+    void searchTask(void);
 
 private:
     static int debug;

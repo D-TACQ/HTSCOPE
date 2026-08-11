@@ -83,8 +83,13 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 	asynStatus status = (asynStatus)(epicsThreadCreate("MultiChannelScopeTask",
                           epicsThreadPriorityMedium,
                           epicsThreadGetStackSize(epicsThreadStackMedium),
-                          (EPICSTHREADFUNC)::runTask,
+                          (EPICSTHREADFUNC)::runDisplayTask,
                           this) == NULL);
+	asynStatus status2 = (asynStatus)(epicsThreadCreate("MultiChannelScopeTask2",
+		    epicsThreadPriorityLow,
+		    epicsThreadGetStackSize(epicsThreadStackMedium),
+		    (EPICSTHREADFUNC)::runSearchTask,
+		    this) == NULL);
     if (status) {
         printf("%s:%s: epicsThreadCreate failure\n", "mcScope", __FUNCTION__);
         return;
@@ -117,13 +122,19 @@ int MultiChannelScope::debug = 0;
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 
-void runTask(void *drvPvt)
+void searchTaskC(void *drvPvt)
 {
 	MultiChannelScope *pPvt = (MultiChannelScope *)drvPvt;
-	pPvt->task();
+	pPvt->searchTask();
 }
 
-void MultiChannelScope::task(void)
+void displayTaskC(void *drvPvt)
+{
+	MultiChannelScope *pPvt = (MultiChannelScope *)drvPvt;
+	pPvt->displayTask();
+}
+
+void MultiChannelScope::displayTask(void)
 {
 	asynStatus status = asynSuccess;
 
@@ -136,7 +147,6 @@ void MultiChannelScope::task(void)
 		lock();
 		if (mmap_active && refresh){
 			get_tb();
-			get_data();
 			process_data();
 			status = setIntegerParam(P_REFRESHr, refresh = 0);
 			printf("%s %s rc %d\n", __FUNCTION__, "setIntegerParam", status);
@@ -154,6 +164,20 @@ void MultiChannelScope::task(void)
 
 			PRDEB(3)("%s %s rc %d\n", __FUNCTION__, "callParamCallbacks", status);
 			PRDEB(2)("%s cleared refresh, callParamCallbacks() done\n", __FUNCTION__);
+		}
+	}
+}
+
+void MultiChannelScope::searchTask(void) {
+	lock();
+
+	while(1) {
+		unlock();
+		epicsThreadSleep(0.2);
+		lock();
+
+		if (mmap_active) {
+		    process_data();
 		}
 	}
 }
