@@ -122,13 +122,13 @@ int MultiChannelScope::debug = 0;
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 
-void searchTaskC(void *drvPvt)
+void runSearchTaskC(void *drvPvt)
 {
 	MultiChannelScope *pPvt = (MultiChannelScope *)drvPvt;
 	pPvt->searchTask();
 }
 
-void displayTaskC(void *drvPvt)
+void runDisplayTaskC(void *drvPvt)
 {
 	MultiChannelScope *pPvt = (MultiChannelScope *)drvPvt;
 	pPvt->displayTask();
