@@ -35,8 +35,8 @@ long GetFileSize(const std::string& filename) {
 MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int maxPoints, unsigned _data_size) :
 		 asynPortDriver(portName,
 							 numChannels,
-							 asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask,
-							 asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask,
+							 asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask,
+							 asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask,
 							 ASYN_CANBLOCK | ASYN_MULTIDEVICE,
 							 1,
 							 0,
@@ -122,13 +122,13 @@ int MultiChannelScope::debug = 0;
 /* Configuration routine.  Called directly, or from the iocsh function below */
 
 
-void runSearchTaskC(void *drvPvt)
+void runSearchTask(void *drvPvt)
 {
 	MultiChannelScope *pPvt = (MultiChannelScope *)drvPvt;
 	pPvt->searchTask();
 }
 
-void runDisplayTaskC(void *drvPvt)
+void runDisplayTask(void *drvPvt)
 {
 	MultiChannelScope *pPvt = (MultiChannelScope *)drvPvt;
 	pPvt->displayTask();
@@ -200,6 +200,10 @@ void MultiChannelScope::init_data() {
 
 bool MultiChannelScope::mmap_uut_data() {
 	char datafile[128];
+	last_scanned_offset = 0;
+	current_event_count = 0;
+	memset(EVENTINDEX, 0, 64 * sizeof(epicsInt32));
+
 	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
 
 	fp = fopen(datafile, "r");
@@ -208,6 +212,8 @@ bool MultiChannelScope::mmap_uut_data() {
 		return false;
 	}
 	long file_size = GetFileSize(datafile);
+	printf("datafile: %s size: %ld", datafile, file_size);
+
 
 	data_len = file_size - file_size%ssb ;
 
@@ -288,9 +294,56 @@ void MultiChannelScope::get_data() {
 }
 
 void MultiChannelScope::process_data() {
-    double nevent = 0;
+    int event_number = 0;
+    if (!RAW || current_event_count >= 64) return;
 
-    printf("%s 99 nevent:%d\n", __FUNCTION__, nevent);
+    // 1. If the file is growing dynamically, check the new size
+    // (Skip this if the file is pre-allocated to full size)
+    char datafile[128];
+    sprintf(datafile, "%s/%s", getenv("HOME"), portName);
+    long current_file_size = GetFileSize(datafile);
+    
+    // Safety limit to avoid reading past mapped memory
+    if (current_file_size > data_len) current_file_size = data_len;
+
+    unsigned char* byte_data = (unsigned char*)RAW;
+    //unsigned char target_sequence[] = {0xAA, 0x55, 0xF1, 0x51};
+    unsigned char target_sequence[] = {0x00, 0x00, 0x00, 0x00};
+    size_t seq_length = sizeof(target_sequence);
+    bool found_new_events = false;
+
+    if (current_file_size < seq_length) return;
+
+    if ((long)last_scanned_offset > current_file_size) {
+	    last_scanned_offset = 0;
+    }
+
+    long limit = current_file_size - seq_length;
+
+    // 2. Scan ONLY from where we left off last time
+    for (long i = last_scanned_offset; i <= limit; ++i) {
+        if (byte_data[i] == target_sequence[0] && 
+            memcmp(&byte_data[i], target_sequence, seq_length) == 0) {
+            
+            EVENTINDEX[current_event_count] = (epicsInt32)i;
+            current_event_count++;
+            found_new_events = true;
+	    printf("%s: FOUND EVENT\n", __FUNCTION__);
+
+            if (current_event_count >= 64) break;
+        }
+        
+        // Record how far we've searched
+        last_scanned_offset = i + 1;
+    }
+
+    // 3. Only update EPICS if we actually found something new
+    // This prevents flooding the EPICS network with redundant arrays
+    if (found_new_events) {
+        doCallbacksInt32Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
+    }
+    
+    printf("%s 99 event_number:%d %d %d\n", __FUNCTION__, event_number, current_event_count, last_scanned_offset);
 }
 
 void MultiChannelScope::get_tb() {

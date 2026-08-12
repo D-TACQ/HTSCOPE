@@ -47,6 +47,10 @@ public:
     void displayTask(void);
     void searchTask(void);
 
+protected:
+    size_t last_scanned_offset;
+    int current_event_count;
+
 private:
     static int debug;
     const unsigned nchan;
