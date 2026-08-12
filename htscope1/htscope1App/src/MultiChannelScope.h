@@ -41,6 +41,8 @@ public:
     ~MultiChannelScope();
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+    virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value,
+                                        size_t nElements);
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,
                                         size_t nElements);

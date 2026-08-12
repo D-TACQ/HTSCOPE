@@ -91,7 +91,11 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 		    (EPICSTHREADFUNC)::runSearchTask,
 		    this) == NULL);
     if (status) {
-        printf("%s:%s: epicsThreadCreate failure\n", "mcScope", __FUNCTION__);
+        printf("%s:%s: epicsThreadCreate failure\n", "mcScope displayTask", __FUNCTION__);
+        return;
+    }
+    if (status2) {
+        printf("%s:%s: epicsThreadCreate failure\n", "mcScope searchTask", __FUNCTION__);
         return;
     }
 
@@ -169,6 +173,7 @@ void MultiChannelScope::displayTask(void)
 }
 
 void MultiChannelScope::searchTask(void) {
+	epicsThreadSleep(5.0); // wait for iocInit to finish
 	lock();
 
 	while(1) {
@@ -211,7 +216,14 @@ bool MultiChannelScope::mmap_uut_data() {
 		perror(datafile);
 		return false;
 	}
-	long file_size = GetFileSize(datafile);
+	long raw_file_size = GetFileSize(datafile);
+	if (raw_file_size < 0) {
+		perror(datafile);
+		return false;
+	}
+
+	size_t file_size = (size_t)raw_file_size;
+
 	printf("datafile: %s size: %ld", datafile, file_size);
 
 
@@ -225,7 +237,7 @@ bool MultiChannelScope::mmap_uut_data() {
 	void* rc = mmap(0, data_len, PROT_READ, MAP_SHARED, fileno(fp), 0);
 	if (rc == MAP_FAILED){
 		RAW = 0;
-		fprintf(stderr, "%s WARNING mmap fail data_len:%lu samples file_size:%ld\n", __FUNCTION__, data_len, file_size);
+		fprintf(stdout, "%s WARNING mmap fail data_len:%lu samples file_size:%ld\n", __FUNCTION__, data_len, file_size);
 		return false;
 	}else{
 		RAW = (epicsInt16*)rc;
@@ -294,34 +306,39 @@ void MultiChannelScope::get_data() {
 }
 
 void MultiChannelScope::process_data() {
-    int event_number = 0;
     if (!RAW || current_event_count >= 64) return;
 
-    // 1. If the file is growing dynamically, check the new size
+    // If the file is growing dynamically, check the new size
     // (Skip this if the file is pre-allocated to full size)
     char datafile[128];
     sprintf(datafile, "%s/%s", getenv("HOME"), portName);
-    long current_file_size = GetFileSize(datafile);
-    
+    long raw_file_size = GetFileSize(datafile);
+    if (raw_file_size < 0) {
+	    perror(datafile);
+    }
+    unsigned long current_file_size = (unsigned long)raw_file_size;
+
+
+
     // Safety limit to avoid reading past mapped memory
     if (current_file_size > data_len) current_file_size = data_len;
 
     unsigned char* byte_data = (unsigned char*)RAW;
-    //unsigned char target_sequence[] = {0xAA, 0x55, 0xF1, 0x51};
-    unsigned char target_sequence[] = {0x00, 0x00, 0x00, 0x00};
+    unsigned char target_sequence[] = {0x51, 0xF1, 0x55, 0xAA};
+    //unsigned char target_sequence[] = {0x00, 0x00, 0x00, 0x00};
     size_t seq_length = sizeof(target_sequence);
     bool found_new_events = false;
 
     if (current_file_size < seq_length) return;
 
-    if ((long)last_scanned_offset > current_file_size) {
+    if (last_scanned_offset > current_file_size) {
 	    last_scanned_offset = 0;
     }
 
-    long limit = current_file_size - seq_length;
+    size_t limit = current_file_size - seq_length;
 
-    // 2. Scan ONLY from where we left off last time
-    for (long i = last_scanned_offset; i <= limit; ++i) {
+    // Scan ONLY from where we left off last time
+    for (size_t i = last_scanned_offset; i <= limit; ++i) {
         if (byte_data[i] == target_sequence[0] && 
             memcmp(&byte_data[i], target_sequence, seq_length) == 0) {
             
@@ -337,13 +354,14 @@ void MultiChannelScope::process_data() {
         last_scanned_offset = i + 1;
     }
 
-    // 3. Only update EPICS if we actually found something new
+    // Only update EPICS if we actually found something new
     // This prevents flooding the EPICS network with redundant arrays
     if (found_new_events) {
-        doCallbacksInt32Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
+        asynStatus stat = doCallbacksInt32Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
+	printf("%s: do CallbacksInt32Array returned %d\n", __FUNCTION__, stat);
     }
     
-    printf("%s 99 event_number:%d %d %d\n", __FUNCTION__, event_number, current_event_count, last_scanned_offset);
+    /* printf("%s 99 current_event_count: %d last_scanned_offset: %zu\n", __FUNCTION__, event_number, current_event_count, last_scanned_offset); */
 }
 
 void MultiChannelScope::get_tb() {
@@ -383,7 +401,7 @@ void MultiChannelScope::get_tb() {
 
 asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
-	asynStatus status = asynSuccess;
+    asynStatus status = asynSuccess;
     int function = pasynUser->reason;
     const char *paramName;
     int addr;
@@ -438,6 +456,12 @@ asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
               "%s:%s: function=%d, name=%s, value=%d\n",
 			  __FUNCTION__, functionName, function, paramName, value);
     return status;
+}
+
+asynStatus MultiChannelScope::writeInt32Array(asynUser *pasynUser, epicsInt32 *value,
+					size_t nElements)
+{
+	return asynPortDriver::writeInt32Array(pasynUser, value, nElements);
 }
 
 asynStatus MultiChannelScope::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
