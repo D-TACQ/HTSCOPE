@@ -4,7 +4,7 @@ echo ++ running python script to generate st.cmd
 export UUTS=acq2106_133; ./scripts/make_htscope_st.cmd.py \
     --nchan=32 \
     --data32=0 \
-    --ndata=100000 \
+    --ndata=10000000 \
     --host=scarp \
     --user=dt100 \
     --output=iocBoot/iochtscope1/st.cmd \

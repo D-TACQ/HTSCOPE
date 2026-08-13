@@ -25,10 +25,12 @@
 #define PS_EOFF			"EOFF"				/* asynFloat64,     r/w */
 #define PS_EGU			"EGU"				/* asynInt32,       r/w */
 #define PS_DEBUG		"DEBUG"				/* asynInt32,       r/w */
-#define PS_EVENTINDEX		"EVENTINDEX"			/* asynInt32,       r/w */
+#define PS_EVENTINDEX		"EVENTINDEX"			/* asynInt64,       r/w */
+#define PS_PRE		"PRE"			/* asynInt64,       r/w */
+#define PS_POST		"POST"			/* asynInt64,       r/w */
 typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;
-typedef epicsInt32   EVTYPE;
+typedef epicsInt64   EVTYPE;
 
 void runDisplayTask(void *drvPvt);
 void runSearchTask(void *drvPvt);
@@ -42,6 +44,8 @@ public:
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     virtual asynStatus writeInt32Array(asynUser *pasynUser, epicsInt32 *value,
+                                        size_t nElements);
+    virtual asynStatus writeInt64Array(asynUser *pasynUser, epicsInt64 *value,
                                         size_t nElements);
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value,
@@ -76,6 +80,8 @@ private:
 	int P_EGU;
 	int P_DEBUG;
 	int P_EVENTINDEX;
+	int P_PRE;
+	int P_POST;
 
     // Add private members for scope data
     unsigned long data_len;
@@ -93,7 +99,7 @@ private:
 
     epicsFloat64* ESLO;
     epicsFloat64* EOFF;
-    epicsInt32* EVENTINDEX;
+    epicsInt64* EVENTINDEX;
     int EGU;                    /* EGU if set, RAW if not set */
 
     void get_tb();

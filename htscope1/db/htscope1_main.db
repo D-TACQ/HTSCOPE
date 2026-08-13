@@ -4,11 +4,11 @@
 record(ao, "$(HOST):SHOT_TIME") {
 	field(DTYP, "Soft Channel")
 	field(DRVL, "1")
-	field(DRVH, "20")
+	field(DRVH, "100")
 	field(VAL,  "10")
 	field(PINI, "YES")
 	field(EGU,  "s")
-	field(DESC, "specify shot duration")
+	field(DESC, "specify shot duration between 1-100s")
 }
 
 record(stringout, "$(HOST):UUT1"){

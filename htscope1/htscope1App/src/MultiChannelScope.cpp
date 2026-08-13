@@ -35,8 +35,8 @@ long GetFileSize(const std::string& filename) {
 MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int maxPoints, unsigned _data_size) :
 		 asynPortDriver(portName,
 							 numChannels,
-							 asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask,
-							 asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask,
+							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask | asynInt64ArrayMask,
+							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask | asynInt64ArrayMask,
 							 ASYN_CANBLOCK | ASYN_MULTIDEVICE,
 							 1,
 							 0,
@@ -60,10 +60,14 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 	createParam(PS_EOFF,             	asynParamFloat64Array,      &P_EOFF);
 	createParam(PS_EGU,  				asynParamInt32,             &P_EGU);
 	createParam(PS_DEBUG,               asynParamInt32,             &P_DEBUG);
-	createParam(PS_EVENTINDEX,               asynParamInt32Array,             &P_EVENTINDEX);
+	createParam(PS_EVENTINDEX,               asynParamInt64Array,             &P_EVENTINDEX);
+	createParam(PS_PRE,               asynParamInt64,             &P_PRE);
+	createParam(PS_POST,               asynParamInt64,             &P_POST);
 
 	setIntegerParam(P_NCHAN, 			nchan);
 	setIntegerParam(P_NSAM, 			nsam);
+	setInteger64Param(P_PRE, 			0);
+	setInteger64Param(P_POST, 			0);
 	/*
 	// Create parameters for each channel
 	for (int ii = 0; ii < numChannels; ii++) {
@@ -99,7 +103,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
         return;
     }
 
-    EVENTINDEX = new epicsInt32[64];
+    EVENTINDEX = new epicsInt64[64];
     ESLO = new epicsFloat64[nchan];
     EOFF = new epicsFloat64[nchan];
     for (unsigned ic = 0; ic < nchan; ++ic){
@@ -207,7 +211,7 @@ bool MultiChannelScope::mmap_uut_data() {
 	char datafile[128];
 	last_scanned_offset = 0;
 	current_event_count = 0;
-	memset(EVENTINDEX, 0, 64 * sizeof(epicsInt32));
+	memset(EVENTINDEX, 0, 64 * sizeof(epicsInt64));
 
 	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
 
@@ -300,7 +304,11 @@ void MultiChannelScope::get_data() {
 
 	for (unsigned ic = 0; ic < nchan; ic++){
 		PRDEB(4)("%s ic:%d nsam:%d P_CHANNEL:%d\n", __FUNCTION__, ic, nsam, P_CHANNEL);
-		doCallbacksFloat64Array(CHANNELS[ic], nsam, P_CHANNEL, ic);
+		asynStatus stat = doCallbacksFloat64Array(CHANNELS[ic], nsam, P_CHANNEL, ic);
+		// print only 1 channel for debug
+		if (ic == 0) {
+			printf("%s: CH:01 callback attempted nsam=%d stat=%d", __FUNCTION__, nsam, stat);
+		}
 	}
 	printf("%s 99 nchan:%d nsam:%d\n", __FUNCTION__, nchan, nsam);
 }
@@ -342,7 +350,7 @@ void MultiChannelScope::process_data() {
         if (byte_data[i] == target_sequence[0] && 
             memcmp(&byte_data[i], target_sequence, seq_length) == 0) {
             
-            EVENTINDEX[current_event_count] = (epicsInt32)i;
+            EVENTINDEX[current_event_count] = (epicsInt64)i;
             current_event_count++;
             found_new_events = true;
 	    printf("%s: FOUND EVENT\n", __FUNCTION__);
@@ -357,8 +365,8 @@ void MultiChannelScope::process_data() {
     // Only update EPICS if we actually found something new
     // This prevents flooding the EPICS network with redundant arrays
     if (found_new_events) {
-        asynStatus stat = doCallbacksInt32Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
-	printf("%s: do CallbacksInt32Array returned %d\n", __FUNCTION__, stat);
+        asynStatus stat = doCallbacksInt64Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
+	printf("%s: do CallbacksInt64Array returned %d\n", __FUNCTION__, stat);
     }
     
     /* printf("%s 99 current_event_count: %d last_scanned_offset: %zu\n", __FUNCTION__, event_number, current_event_count, last_scanned_offset); */
@@ -462,6 +470,12 @@ asynStatus MultiChannelScope::writeInt32Array(asynUser *pasynUser, epicsInt32 *v
 					size_t nElements)
 {
 	return asynPortDriver::writeInt32Array(pasynUser, value, nElements);
+}
+
+asynStatus MultiChannelScope::writeInt64Array(asynUser *pasynUser, epicsInt64 *value,
+					size_t nElements)
+{
+	return asynPortDriver::writeInt64Array(pasynUser, value, nElements);
 }
 
 asynStatus MultiChannelScope::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
