@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Saved on 2025-06-30 16:16:52 by dt100-->
 <display version="2.0.0">
   <name>ht_scope_controls</name>
   <width>895</width>
-  <height>474</height>
+  <height>850</height>
   <widget type="group" version="3.0.0">
     <name>Brand</name>
     <x>20</x>
@@ -13,8 +12,8 @@
     <style>2</style>
     <transparent>true</transparent>
     <widget type="label" version="2.0.0">
-      <name>Label_10</name>
-      <text>HT_SCOPE</text>
+      <name>eventscope_label</name>
+      <text>EVENTSCOPE</text>
       <y>103</y>
       <width>135</width>
       <height>28</height>
@@ -32,7 +31,7 @@
       <wrap_words>false</wrap_words>
     </widget>
     <widget type="picture" version="2.0.0">
-      <name>Picture_3</name>
+      <name>d-tacq_logo</name>
       <file>../image/dtacq.png</file>
       <width>135</width>
       <height>103</height>
@@ -46,7 +45,7 @@
     <height>70</height>
     <transparent>true</transparent>
     <widget type="action_button" version="3.0.0">
-      <name>Action Button</name>
+      <name>open_plot_button</name>
       <actions>
         <action type="open_display">
           <description>Open Display</description>
@@ -1168,8 +1167,7 @@
           </color>
         </background_color>
         <vertical_alignment>1</vertical_alignment>
-        <maximum>20.0</maximum>
-        <limits_from_pv>false</limits_from_pv>
+        <maximum>1000.0</maximum>
       </widget>
       <widget type="textupdate" version="2.0.0">
         <name>Runtime value</name>
@@ -1266,14 +1264,14 @@
     </instances>
     <x>157</x>
     <width>728</width>
-    <height>90</height>
+    <height>76</height>
     <horizontal>true</horizontal>
     <gap>0</gap>
   </widget>
   <widget type="group" version="3.0.0">
     <name>DEBUG</name>
-    <x>200</x>
-    <y>161</y>
+    <x>190</x>
+    <y>580</y>
     <width>442</width>
     <height>270</height>
     <visible>false</visible>
@@ -1402,7 +1400,6 @@
       <name>Label_12</name>
       <text>HOST = ${HOST}</text>
       <y>20</y>
-      <width>111</width>
       <height>16</height>
       <auto_size>true</auto_size>
     </widget>
@@ -1432,7 +1429,7 @@
     <height>182</height>
     <transparent>true</transparent>
     <widget type="template" version="2.0.0">
-      <name>Stream state array</name>
+      <name>stream_state_array</name>
       <file>stream_status.bob</file>
       <instances>
         <instance>
@@ -1461,7 +1458,7 @@
       <gap>0</gap>
     </widget>
     <widget type="action_button" version="3.0.0">
-      <name>Action Button_1</name>
+      <name>console_button</name>
       <actions>
         <action type="command">
           <description>Open console</description>
@@ -1483,12 +1480,12 @@
     <style>3</style>
     <transparent>true</transparent>
     <widget type="label" version="2.0.0">
-      <name>Label_11</name>
+      <name>host_label</name>
       <text>$(USER)@$(HOST)</text>
       <width>147</width>
     </widget>
     <widget type="byte_monitor" version="2.0.0">
-      <name>Byte Monitor_1</name>
+      <name>idle_byte monitor</name>
       <pv_name>$(HOST):IDLE</pv_name>
       <x>786</x>
       <width>36</width>
@@ -1496,7 +1493,7 @@
       <numBits>2</numBits>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>Label</name>
+      <name>idle_label</name>
       <text>Idle:</text>
       <x>756</x>
       <width>27</width>
@@ -1506,14 +1503,14 @@
   </widget>
   <widget type="action_button" version="3.0.0">
     <name>Action Button_2</name>
-    <x>550</x>
-    <y>570</y>
+    <x>332</x>
+    <y>550</y>
     <width>1</width>
     <height>1</height>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="combo" version="2.0.0">
-    <name>Combo Box</name>
+    <name>select_trg_src</name>
     <pv_name>$(UUT_1):0:SIG:SRC:TRG:0</pv_name>
     <x>263</x>
     <y>12</y>
@@ -1523,5 +1520,214 @@
       <font family="Liberation Sans" style="BOLD" size="12.0">
       </font>
     </font>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>events</name>
+    <macros>
+      <PV>EVENTS</PV>
+    </macros>
+    <x>28</x>
+    <y>474</y>
+    <width>813</width>
+    <height>32</height>
+    <style>2</style>
+    <transparent>true</transparent>
+    <widget type="textupdate" version="2.0.0">
+      <name>events text</name>
+      <pv_name>$(HOST):$(UUT_1):STREAM:EVENTINDEX</pv_name>
+      <x>80</x>
+      <width>732</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>events label</name>
+      <text>${PV}</text>
+      <width>80</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>selected_event</name>
+    <x>399</x>
+    <y>520</y>
+    <width>190</width>
+    <height>30</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>events label_1</name>
+      <text>SELECTED</text>
+      <width>80</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>selected event_1</name>
+      <pv_name>loc://selected_event</pv_name>
+      <x>90</x>
+      <height>30</height>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <scripts>
+        <script file="../scripts/event_selector.py">
+          <pv_name>loc://PING</pv_name>
+          <pv_name trigger="false">loc://PONG</pv_name>
+          <pv_name trigger="false">scarp:acq2106_133:STREAM:EVENTINDEX</pv_name>
+          <pv_name trigger="false">loc://selected_event</pv_name>
+        </script>
+      </scripts>
+    </widget>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>event_selector_stored</name>
+    <pv_name>loc://PONG&lt;VLong&gt;(2)</pv_name>
+    <x>289</x>
+    <y>560</y>
+    <visible>false</visible>
+    <background_color>
+      <color name="Write_Background" red="128" green="255" blue="255">
+      </color>
+    </background_color>
+    <format>1</format>
+    <show_units>false</show_units>
+  </widget>
+  <widget type="spinner" version="2.0.0">
+    <name>event_selector</name>
+    <pv_name>loc://PING&lt;VLong&gt;(2)</pv_name>
+    <x>175</x>
+    <y>520</y>
+    <width>200</width>
+    <height>30</height>
+    <format>0</format>
+    <precision>0</precision>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>pre_selector</name>
+    <macros>
+      <PV>PRE</PV>
+      <PRECISION>0</PRECISION>
+    </macros>
+    <x>28</x>
+    <y>570</y>
+    <width>261</width>
+    <height>32</height>
+    <style>2</style>
+    <transparent>true</transparent>
+    <widget type="spinner" version="2.0.0">
+      <name>Spinner_6</name>
+      <pv_name>$(HOST):$(USER):$(UUT_1):PRE</pv_name>
+      <x>150</x>
+      <width>110</width>
+      <height>30</height>
+      <precision>0</precision>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <vertical_alignment>1</vertical_alignment>
+      <maximum></maximum>
+      <increment>1.6E8</increment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update_16</name>
+      <pv_name>$(HOST):$(USER):$(UUT_1):PRE</pv_name>
+      <x>80</x>
+      <width>70</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_22</name>
+      <text>${PV}</text>
+      <width>80</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>post_selector</name>
+    <macros>
+      <PV>POST</PV>
+      <PRECISION>0</PRECISION>
+    </macros>
+    <x>28</x>
+    <y>616</y>
+    <width>261</width>
+    <height>32</height>
+    <style>2</style>
+    <transparent>true</transparent>
+    <widget type="spinner" version="2.0.0">
+      <name>Spinner_7</name>
+      <pv_name>$(HOST):$(USER):$(UUT_1):POST</pv_name>
+      <x>150</x>
+      <width>110</width>
+      <height>30</height>
+      <precision>0</precision>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <vertical_alignment>1</vertical_alignment>
+      <maximum></maximum>
+      <increment>1.6E8</increment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>Text Update_19</name>
+      <pv_name>$(HOST):$(USER):$(UUT_1):POST</pv_name>
+      <x>80</x>
+      <width>70</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>Label_25</name>
+      <text>${PV}</text>
+      <width>80</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
   </widget>
 </display>
