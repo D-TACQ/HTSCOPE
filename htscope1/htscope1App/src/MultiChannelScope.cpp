@@ -35,8 +35,8 @@ long GetFileSize(const std::string& filename) {
 MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int maxPoints, unsigned _data_size) :
 		 asynPortDriver(portName,
 							 numChannels,
-							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask | asynInt64ArrayMask,
-							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask | asynInt64ArrayMask,
+							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask | asynInt64ArrayMask | asynOctetMask,
+							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask | asynInt64ArrayMask | asynOctetMask,
 							 ASYN_CANBLOCK | ASYN_MULTIDEVICE,
 							 1,
 							 0,
@@ -63,11 +63,14 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 	createParam(PS_EVENTINDEX,               asynParamInt64Array,             &P_EVENTINDEX);
 	createParam(PS_PRE,               asynParamInt64,             &P_PRE);
 	createParam(PS_POST,               asynParamInt64,             &P_POST);
+	createParam(PS_SAVE_EVENT,               asynParamInt32,             &P_SAVE_EVENT);
+	createParam(PS_SAVE_PATH,               asynParamOctet,             &P_SAVE_PATH);
 
 	setIntegerParam(P_NCHAN, 			nchan);
 	setIntegerParam(P_NSAM, 			nsam);
 	setInteger64Param(P_PRE, 			0);
 	setInteger64Param(P_POST, 			0);
+	setStringParam(P_SAVE_PATH, 			"/tmp");
 	/*
 	// Create parameters for each channel
 	for (int ii = 0; ii < numChannels; ii++) {
@@ -407,6 +410,83 @@ void MultiChannelScope::get_tb() {
 	doCallbacksFloat64Array(TB, nsam, P_TB, 0);
 }
 
+bool MultiChannelScope::save_clipped_event(int event_array_index) {
+        // Validate requested event exists
+	if (event_array_index < 0 || event_array_index >= current_event_count) {
+	        printf("%s: event %d does not exist. Max event is %d", __FUNCTION__, event_array_index, current_event_count);
+	        return false;
+	}
+	// Fetch PRE and POST from EPICS parameters
+	epicsInt64 pre_samples = 0;
+	epicsInt64 post_samples = 0;
+	getInteger64Param(P_PRE, &pre_samples);
+	getInteger64Param(P_POST, &post_samples);
+        char datafile[128];
+	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
+	long raw_file_size = GetFileSize(datafile);
+	if (raw_file_size < 0) {
+	    perror(datafile);
+	}
+	unsigned long current_file_size = (long long int)raw_file_size;
+	
+	// Get byte offset of specific event from event index array
+	epicsInt64 byte_offset = EVENTINDEX[event_array_index];
+
+	// calculate the window to clip in bytes
+	epicsInt64 total_samples = pre_samples + 1 + post_samples;
+	epicsInt64 total_bytes = total_samples * ssb;
+	// Calculate where to start copying
+	epicsInt64 start_byte = byte_offset - (pre_samples * ssb);
+	// Do a boundary check
+	// Did PRE push us before the beginning or POST after the end?
+	if (start_byte < 0) {
+		epicsInt64 bytes_lost = 0 - start_byte;
+		start_byte = 0;
+		total_bytes -= bytes_lost;
+		printf("%s: Warning - PRE window truncated to start of file. start_byte idx: %d PRE: %d\n", 
+				__FUNCTION__, start_byte, pre_samples);
+	}
+
+	epicsInt64 end_byte = (epicsInt64)current_file_size;
+	if (start_byte + total_bytes > current_file_size) {
+		total_bytes = end_byte - start_byte;
+		printf("%s: Warning - POST window truncated to end of file. start_byte idx: %d POST: %d file_size: %d",
+				__FUNCTION__, start_byte, post_samples, current_file_size);
+	}
+	if (total_bytes <= 0) {
+		printf("%s: Error- calculated clip size is 0 bytes.\n", __FUNCTION__);
+		return false;
+	}
+	// Write to disk
+	// Fetch user defined path
+	char base_path[256];
+	getStringParam(P_SAVE_PATH, sizeof(base_path), base_path);
+	// Ensure there is a trailing slash
+	std::string path_str(base_path);
+	if (!path_str.empty() && path_str.back() != '/') {
+		path_str += "/";
+	}
+	// Create unique filename
+	char filename[512];
+	sprintf(filename, "%sevent_capture_%d_%d_%d.bin", path_str.c_str(),  event_array_index, pre_samples, post_samples);
+	printf("%s", filename);
+
+	FILE *fp = fopen(filename, "wb");
+	if (!fp) {
+		printf("Failed to open file for writing %s. Does the directory exist?", filename);
+		return false;
+	}
+
+	// Cast raw memory to byte pointer, offset it and dump it to disk
+	const unsigned char* byte_data = (const unsigned char*)RAW;
+	size_t written = fwrite(byte_data + start_byte, 1, total_bytes, fp);
+	fclose(fp);
+	printf("%s: SUCCESS. Saved event %d to %s. (requested %lld bytes Saved %zu bytes",
+			__FUNCTION__, event_array_index, filename, total_samples * ssb, written);
+	
+	return true;
+}
+
 asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     asynStatus status = asynSuccess;
@@ -450,6 +530,9 @@ asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
     	}
     	status = (asynStatus) setIntegerParam(addr, P_MMAPUNMAPr, value);
     	if (status != 0) printf("ERROR %s setIntegerParam %d, %d, %d fail\n", __FUNCTION__,  addr, P_MMAPUNMAPr, value);
+    }
+    else if (function == P_SAVE_EVENT) {
+	    save_clipped_event(value);
     }
 
     /* Do callbacks so higher layers see any changes */
