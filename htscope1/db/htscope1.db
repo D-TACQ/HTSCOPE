@@ -337,14 +337,15 @@ record(waveform, "$(HOST):$(UUT):STREAM:EVENTINDEX") {
 }
 
 
+# selecting samples pre and post event
 record(int64out, "$(HOST):$(USER):$(UUT):PRE"){
 	field(DTYP, "asynInt64")
 	field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))PRE")
 	field(DRVL, "0")
-	field(DRVH, "3200000000")
+	field(DRVH, "20000000")
 	field(VAL,  "0")
 	field(PINI, "YES")
-        field(DESC, "bytes before event to display/save")
+        field(DESC, "samples before event to display/save")
         info(asyn:READBACK, "1")
 }
 
@@ -352,9 +353,9 @@ record(int64out, "$(HOST):$(USER):$(UUT):POST"){
 	field(DTYP, "asynInt64")
 	field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))POST")
 	field(DRVL, "0")
-	field(DRVH, "3200000000")
+	field(DRVH, "20000000")
 	field(VAL,  "0")
 	field(PINI, "YES")
-        field(DESC, "bytes after event to display/save")
+        field(DESC, "samples after event to display/save")
         info(asyn:READBACK, "1")
 }
