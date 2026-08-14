@@ -350,7 +350,7 @@ record(lso, "$(HOST):$(USER):$(UUT):SAVE_PATH"){
         field(DTYP, "asynOctetWrite")
         field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_PATH")
         field(SIZV, "512")
-        field(VAL "/tmp")
+        field(VAL, "/tmp")
         field(PINI, "YES")
         info(asyn:READBACK, "1")
 }
