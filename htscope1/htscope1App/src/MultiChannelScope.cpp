@@ -468,7 +468,7 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	}
 	// Create unique filename
 	char filename[512];
-	sprintf(filename, "%sevent_capture_%d_%d_%d.bin", path_str.c_str(),  event_array_index, pre_samples, post_samples);
+	sprintf(filename, "%sevent-%d-%d-%d-%d.dat", path_str.c_str(),  event_array_index, start_byte, pre_samples, post_samples);
 	printf("%s", filename);
 
 	FILE *fp = fopen(filename, "wb");
