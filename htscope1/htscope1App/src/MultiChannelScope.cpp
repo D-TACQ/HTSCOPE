@@ -493,7 +493,7 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	    char cmd[1024];
 	    // -s silent and -T to upload file
 	    snprintf(cmd, sizeof(cmd) "curl -s -T %s ftp://%s/ --user %s:%s &",
-		    localfilePath, ip, user, pass);
+		    filename, ip, user, pass);
 
 	    int rc = std::system(cmd);
 	    if (rc != 0) {
