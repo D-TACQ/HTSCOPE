@@ -484,6 +484,27 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	printf("%s: SUCCESS. Saved event %d to %s. (requested %lld bytes Saved %zu bytes",
 			__FUNCTION__, event_array_index, filename, total_samples * ssb, written);
 	
+	// send file over FTP to FTP server
+	const char* ip = getenv("FTP_IP");
+	const char* user = getenv("FTP_USER");
+	const char* pass = getenv("FTP_PASS");
+
+	if (ip && user && pass) {
+	    char cmd[1024];
+	    // -s silent and -T to upload file
+	    snprintf(cmd, sizeof(cmd) "curl -s -T %s ftp://%s/ --user %s:%s &",
+		    localfilePath, ip, user, pass);
+
+	    int rc = std::system(cmd);
+	    if (rc != 0) {
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+			"failed to spawn background FTP transfer\n.");
+	    }
+	} else {
+	    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+		    "FTP environment variables not set in st.cmd\n");
+	}
+
 	return true;
 }
 
