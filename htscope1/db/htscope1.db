@@ -329,7 +329,7 @@ record(waveform, "$(HOST):$(UUT):STREAM:STATUS") {
 record(waveform, "$(HOST):$(UUT):STREAM:EVENTINDEX") {
         field(DTYP, "asynInt64ArrayIn")
         field(INP, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))EVENTINDEX")
-        field(PINI, "YES")
+        field(PINI, "NO")
         field(NELM, "64")
         field(FTVL, "INT64")
         field(DESC, "byte number showing start of event")
@@ -343,14 +343,13 @@ record(longout, "$(HOST):$(USER):$(UUT):SAVE_EVENT"){
 	field(DRVL, "0")
 	field(DRVH, "63")
 	field(VAL,  "0")
-	field(PINI, "YES")
+	field(PINI, "NO")
 }
 
 record(lso, "$(HOST):$(USER):$(UUT):SAVE_PATH"){
         field(DTYP, "asynOctetWrite")
         field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_PATH")
         field(SIZV, "512")
-        field(VAL, "/tmp")
         field(PINI, "YES")
         info(asyn:READBACK, "1")
 }
