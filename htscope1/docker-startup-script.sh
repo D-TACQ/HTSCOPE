@@ -1,8 +1,9 @@
 echo +running docker startup script
 
 echo ++ running python script to generate st.cmd
+echo +++ creating 32 int16 channels and 8 int16 spad channels
 export UUTS=acq2106_133; ./scripts/make_htscope_st.cmd.py \
-    --nchan=32 \
+    --nchan=40 \
     --data32=0 \
     --ndata=10000000 \
     --host=scarp \
