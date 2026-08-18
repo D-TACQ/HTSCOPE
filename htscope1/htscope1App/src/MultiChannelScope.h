@@ -30,6 +30,9 @@
 #define PS_POST		"POST"			/* asynInt64,       r/w */
 #define PS_SAVE_EVENT "SAVE_EVENT"
 #define PS_SAVE_PATH "SAVE_PATH"                /* asynOctet */
+
+#define MAX_NUM_EVENTS 64
+
 typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;
 typedef epicsInt64   EVTYPE;

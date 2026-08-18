@@ -317,7 +317,7 @@ void MultiChannelScope::get_data() {
 }
 
 void MultiChannelScope::process_data() {
-    if (!RAW || current_event_count >= 64) return;
+    if (!RAW || current_event_count >= MAX_NUM_EVENTS) return;
 
     // If the file is growing dynamically, check the new size
     // (Skip this if the file is pre-allocated to full size)
@@ -336,7 +336,6 @@ void MultiChannelScope::process_data() {
 
     unsigned char* byte_data = (unsigned char*)RAW;
     unsigned char target_sequence[] = {0x51, 0xF1, 0x55, 0xAA};
-    //unsigned char target_sequence[] = {0x00, 0x00, 0x00, 0x00};
     size_t seq_length = sizeof(target_sequence);
     bool found_new_events = false;
 
@@ -358,7 +357,16 @@ void MultiChannelScope::process_data() {
             found_new_events = true;
 	    printf("%s: FOUND EVENT\n", __FUNCTION__);
 
-            if (current_event_count >= 64) break;
+            // If we have found an event we advance an entire ES forward
+	    // The ES is the length of one full sample (i.e. length of ES = SSB)
+	    if (ssb > 0) {
+		    i += (ssb - 1);
+	    }
+
+            if (current_event_count >= MAX_NUM_EVENTS) {
+		    last_scanned_offset = i + 1;
+		    break;
+	    }
         }
         
         // Record how far we've searched
@@ -368,7 +376,7 @@ void MultiChannelScope::process_data() {
     // Only update EPICS if we actually found something new
     // This prevents flooding the EPICS network with redundant arrays
     if (found_new_events) {
-        asynStatus stat = doCallbacksInt64Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
+        asynStatus stat = doCallbacksInt64Array(EVENTINDEX, MAX_NUM_EVENTS, P_EVENTINDEX, 0);
 	printf("%s: do CallbacksInt64Array returned %d\n", __FUNCTION__, stat);
     }
     
