@@ -346,6 +346,13 @@ record(longout, "$(HOST):$(USER):$(UUT):SAVE_EVENT"){
 	field(PINI, "NO")
 }
 
+record(longin, "$(HOST):$(USER):$(UUT):N_EVENTS_DETECTED"){
+        field(DTYP, "asynInt32")
+        field(INP, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))N_EVENTS_DETECTED")
+	field(PINI, "YES")
+        field(SCAN, "I/O Intr")
+}
+
 record(lso, "$(HOST):$(USER):$(UUT):SAVE_PATH"){
         field(DTYP, "asynOctetWrite")
         field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_PATH")

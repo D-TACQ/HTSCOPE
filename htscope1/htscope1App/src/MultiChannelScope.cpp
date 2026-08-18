@@ -64,6 +64,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 	createParam(PS_PRE,               asynParamInt64,             &P_PRE);
 	createParam(PS_POST,               asynParamInt64,             &P_POST);
 	createParam(PS_SAVE_EVENT,               asynParamInt32,             &P_SAVE_EVENT);
+	createParam(PS_N_EVENTS_DETECTED,               asynParamInt32,             &P_N_EVENTS_DETECTED);
 	createParam(PS_SAVE_PATH,               asynParamOctet,             &P_SAVE_PATH);
 
 	setIntegerParam(P_NCHAN, 			nchan);
@@ -158,7 +159,6 @@ void MultiChannelScope::displayTask(void)
 		lock();
 		if (mmap_active && refresh){
 			get_tb();
-			process_data();
 			status = setIntegerParam(P_REFRESHr, refresh = 0);
 			printf("%s %s rc %d\n", __FUNCTION__, "setIntegerParam", status);
 #if 0
@@ -317,6 +317,7 @@ void MultiChannelScope::get_data() {
 }
 
 void MultiChannelScope::process_data() {
+    //printf("n_events_detected %d\n", n_events_detected);
     if (!RAW || current_event_count >= MAX_NUM_EVENTS) return;
 
     // If the file is growing dynamically, check the new size
@@ -356,7 +357,8 @@ void MultiChannelScope::process_data() {
             current_event_count++;
             found_new_events = true;
 	    printf("%s: FOUND EVENT\n", __FUNCTION__);
-
+	    n_events_detected += 1;
+	    //printf("n_events_detected %d\n", n_events_detected);
             // If we have found an event we advance an entire ES forward
 	    // The ES is the length of one full sample (i.e. length of ES = SSB)
 	    if (ssb > 0) {
@@ -376,6 +378,9 @@ void MultiChannelScope::process_data() {
     // Only update EPICS if we actually found something new
     // This prevents flooding the EPICS network with redundant arrays
     if (found_new_events) {
+        asynStatus int_stat = setIntegerParam(P_N_EVENTS_DETECTED, current_event_count);
+	callParamCallbacks();
+
         asynStatus stat = doCallbacksInt64Array(EVENTINDEX, MAX_NUM_EVENTS, P_EVENTINDEX, 0);
 	printf("%s: do CallbacksInt64Array returned %d\n", __FUNCTION__, stat);
     }
@@ -565,6 +570,9 @@ asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
     else if (function == P_SAVE_EVENT) {
 	    save_clipped_event(value);
     }
+    //else if (function == P_N_EVENTS_DETECTED) {
+    //	    n_events_detected = value;
+    //}
 
     /* Do callbacks so higher layers see any changes */
     status = (asynStatus) callParamCallbacks(addr, addr);
