@@ -437,6 +437,8 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	epicsInt64 total_bytes = total_samples * ssb;
 	// Calculate where to start copying
 	epicsInt64 start_byte = byte_offset - (pre_samples * ssb);
+
+	printf("ssb is: %d total_samples: %d\n", ssb, total_samples); 
 	// Do a boundary check
 	// Did PRE push us before the beginning or POST after the end?
 	if (start_byte < 0) {
@@ -502,7 +504,7 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	    }
 	} else {
 	    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-		    "FTP environment variables not set in st.cmd\n");
+		    "FTP environment variables not set in st.cmd FTP_USER FTP_PASS FTP_IP\n");
 	}
 
 	return true;
