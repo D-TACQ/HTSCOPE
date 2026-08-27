@@ -115,7 +115,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
         EOFF[ic] = 0;
 
     }
-    for (unsigned ic = 0; ic < 64; ++ic){
+    for (unsigned ic = 0; ic < MAX_NUM_EVENTS; ++ic){
 	EVENTINDEX[ic] = 0;
     }
 }
@@ -214,7 +214,7 @@ bool MultiChannelScope::mmap_uut_data() {
 	char datafile[128];
 	last_scanned_offset = 0;
 	current_event_count = 0;
-	memset(EVENTINDEX, 0, 64 * sizeof(epicsInt64));
+	memset(EVENTINDEX, 0, MAX_NUM_EVENTS * sizeof(epicsInt64));
 
 	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
 
