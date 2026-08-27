@@ -8,7 +8,7 @@ echo +++ creating 32 int16 channels and 8 int16 spad channels
 echo +++ master is $MASTER and slave is $SLAVE
 
 export UUTS="${MASTER} ${SLAVE}"; ./scripts/make_htscope_st.cmd.py \
-    --nchan=80 \
+    --nchan=40 \
     --data32=0 \
     --ndata=1000000 \
     --host=scarp \
