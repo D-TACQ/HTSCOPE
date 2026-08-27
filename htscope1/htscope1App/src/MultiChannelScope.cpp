@@ -526,18 +526,27 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	        printf("%s: event %d does not exist. Max event is %d", __FUNCTION__, event_array_index, current_event_count);
 	        return false;
 	}
+
+	// Ensure the main data file actually open
+	if (!fp) {
+		printf("ERROR: %s main file pointer is null.\n", __FUNCTION__);
+		return false;
+	}
+
 	// Fetch PRE and POST from EPICS parameters
 	epicsInt64 pre_samples = 0;
 	epicsInt64 post_samples = 0;
 	getInteger64Param(P_PRE, &pre_samples);
 	getInteger64Param(P_POST, &post_samples);
-        char datafile[128];
-	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
+        
+	char datafile[256];
+	snprintf(datafile, sizeof(datafile), "%s/%s", getenv("HOME") ? getenv("HOME") : "/tmp", portName);
 	long raw_file_size = GetFileSize(datafile);
 	if (raw_file_size < 0) {
 	    perror(datafile);
+	    return false;
 	}
-	unsigned long current_file_size = (long long int)raw_file_size;
+	epicsInt64 current_file_size = (epicsInt64)raw_file_size;
 	
 	// Get byte offset of specific event from event index array
 	epicsInt64 byte_offset = EVENTINDEX[event_array_index];
@@ -545,30 +554,33 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	// calculate the window to clip in bytes
 	epicsInt64 total_samples = pre_samples + 1 + post_samples;
 	epicsInt64 total_bytes = total_samples * ssb;
+
 	// Calculate where to start copying
 	epicsInt64 start_byte = byte_offset - (pre_samples * ssb);
 
-	printf("ssb is: %d total_samples: %d\n", ssb, total_samples); 
+	printf("ssb is: %d total_samples: %lld\n", ssb, (long long)total_samples); 
 	// Do a boundary check
 	// Did PRE push us before the beginning or POST after the end?
 	if (start_byte < 0) {
 		epicsInt64 bytes_lost = 0 - start_byte;
 		start_byte = 0;
 		total_bytes -= bytes_lost;
-		printf("%s: Warning - PRE window truncated to start of file. start_byte idx: %d PRE: %d\n", 
-				__FUNCTION__, start_byte, pre_samples);
+		printf("%s: Warning - PRE window truncated to start of file. start_byte idx: %lld PRE: %lld\n", 
+				__FUNCTION__, (long long)start_byte, (long long)pre_samples);
 	}
 
-	epicsInt64 end_byte = (epicsInt64)current_file_size;
+	epicsInt64 end_byte = current_file_size;
 	if (start_byte + total_bytes > current_file_size) {
 		total_bytes = end_byte - start_byte;
-		printf("%s: Warning - POST window truncated to end of file. start_byte idx: %d POST: %d file_size: %d",
-				__FUNCTION__, start_byte, post_samples, current_file_size);
+		printf("%s: Warning - POST window truncated to end of file. start_byte idx: %lld POST: %lld file_size: %lld\n",
+				__FUNCTION__, (long long)start_byte, (long long)post_samples, (long long)current_file_size);
 	}
+
 	if (total_bytes <= 0) {
 		printf("%s: Error- calculated clip size is 0 bytes.\n", __FUNCTION__);
 		return false;
 	}
+
 	// Write to disk
 	// Fetch user defined path
 	char base_path[256];
@@ -580,21 +592,31 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	}
 	// Create unique filename
 	char filename[512];
-	sprintf(filename, "%sevent-%d-%d-%d-%d.dat", path_str.c_str(),  event_array_index, start_byte, pre_samples, post_samples);
-	printf("%s", filename);
+	snprintf(filename, sizeof(filename), "%sevent-%d-%lld-%lld-%lld.dat", path_str.c_str(),  event_array_index, (long long)start_byte, (long long)pre_samples, (long long)post_samples);
+	printf("Saving to: %s\n", filename);
 
-	FILE *fp = fopen(filename, "wb");
-	if (!fp) {
-		printf("Failed to open file for writing %s. Does the directory exist?", filename);
+	FILE *out_fp = fopen(filename, "wb");
+	if (!out_fp) {
+		printf("Failed to open file for writing %s. Does the directory exist?\n", filename);
 		return false;
 	}
 
-	// Cast raw memory to byte pointer, offset it and dump it to disk
-	const unsigned char* byte_data = (const unsigned char*)RAW;
-	size_t written = fwrite(byte_data + start_byte, 1, total_bytes, fp);
-	fclose(fp);
-	printf("%s: SUCCESS. Saved event %d to %s. (requested %lld bytes Saved %zu bytes",
-			__FUNCTION__, event_array_index, filename, total_samples * ssb, written);
+	// Pull exact bytes straight from disk
+	std::vector<uint8_t> clip_buffer(total_bytes);
+	ssize_t bytes_read = pread(fileno(fp), clip_buffer.data(), total_bytes, start_byte);
+
+	if (bytes_read <= 0) {
+		printf("ERROR: %s failed to read data from source file (pread returned %zd)\n", __FUNCTION__, bytes_read);
+		fclose(out_fp);
+		return false;
+	}
+
+	// dump buffer to new file
+	size_t written = fwrite(clip_buffer.data(), 1, bytes_read, out_fp);
+	fclose(out_fp);
+
+	printf("%s: SUCCESS. Saved event %d to %s. (requested %lld bytes, saved %zu bytes)\n",
+			__FUNCTION__, event_array_index, filename, (long long)(total_samples * ssb), written);
 	
 	// send file over FTP to FTP server
 	const char* ip = getenv("FTP_IP");
