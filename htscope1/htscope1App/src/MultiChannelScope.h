@@ -32,7 +32,7 @@
 #define PS_N_EVENTS_DETECTED "N_EVENTS_DETECTED"
 #define PS_SAVE_PATH "SAVE_PATH"                /* asynOctet */
 
-#define MAX_NUM_EVENTS 64
+#define MAX_NUM_EVENTS 256
 
 typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;

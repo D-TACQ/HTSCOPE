@@ -107,7 +107,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
         return;
     }
 
-    EVENTINDEX = new epicsInt64[64];
+    EVENTINDEX = new epicsInt64[MAX_NUM_EVENTS];
     ESLO = new epicsFloat64[nchan];
     EOFF = new epicsFloat64[nchan];
     for (unsigned ic = 0; ic < nchan; ++ic){
