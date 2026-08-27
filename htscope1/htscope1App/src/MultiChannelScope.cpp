@@ -19,10 +19,12 @@
 #include <string>
 
 
-
+#include <unistd.h>
+#include <vector>
+#include <fcntl.h>
+#include <fstream>
 #include <sys/stat.h>
 #include <iostream>
-#include <string>
 
 long GetFileSize(const std::string& filename) {
     struct stat stat_buf;
@@ -240,22 +242,12 @@ bool MultiChannelScope::mmap_uut_data() {
 	data_len_samples = data_len/ssb;
 
 	PRDEB(1)("data_len: %ld words: %ld samples %ld\n", data_len, data_len_words, data_len_samples);
+	return true;
 
-	void* rc = mmap(0, data_len, PROT_READ, MAP_SHARED, fileno(fp), 0);
-	if (rc == MAP_FAILED){
-		RAW = 0;
-		fprintf(stdout, "%s WARNING mmap fail data_len:%lu samples file_size:%ld\n", __FUNCTION__, data_len, file_size);
-		return false;
-	}else{
-		RAW = (epicsInt16*)rc;
-		PRDEB(1)("RAW:%p SUCCESS\n", RAW);
-		return true;
-	}
 }
 
 void MultiChannelScope::unmap_uut_data() {
 	if (RAW){
-		munmap(RAW, data_len);
 		RAW = 0;
 	}
 	if (fp){
@@ -263,129 +255,234 @@ void MultiChannelScope::unmap_uut_data() {
 		fp = 0;
 	}
 }
+
+#include <unistd.h>
+#include <vector>
+
 void MultiChannelScope::get_data() {
-	double delay = 0;
-	double fs = 2e6;
+    double delay = 0;
+    double fs = 2e6;
 
-	asynStatus status = getDoubleParam(P_DELAY, &delay);
-	if (status != asynSuccess){
-		delay = 0;
-		printf("ERROR: %s failed to retrieve P_DELAY, setting default %.3g\n", __FUNCTION__, delay);
-	}
-	status = getDoubleParam(P_FS, &fs);
-	if (status != asynSuccess){
-		fs = 2e6;
-		printf("ERROR: %s failed to retrieve P_FS, setting default %.3g\n", __FUNCTION__, fs);
-	}
-	startoff = delay*fs;
-	printf("%s startoff:%ld (samples) stride:%u\n", __FUNCTION__, startoff, stride);
+    // Safety check: ensure file is actually open
+    if (!fp) {
+        printf("ERROR: %s file pointer is null. Is the DAQ file open?\n", __FUNCTION__);
+        return;
+    }
 
-	unsigned long start_cursor = startoff*nchan;
-	int overlimit = 0;
+    asynStatus status = getDoubleParam(P_DELAY, &delay);
+    if (status != asynSuccess){
+        delay = 0;
+        printf("ERROR: %s failed to retrieve P_DELAY, setting default %.3g\n", __FUNCTION__, delay);
+    }
+    status = getDoubleParam(P_FS, &fs);
+    if (status != asynSuccess){
+        fs = 2e6;
+        printf("ERROR: %s failed to retrieve P_FS, setting default %.3g\n", __FUNCTION__, fs);
+    }
+    
+    startoff = delay * fs;
+    printf("%s startoff:%ld (samples) stride:%u\n", __FUNCTION__, startoff, stride);
 
-	for (unsigned isam = 0; isam < nsam; ++isam){
-		unsigned long cursor = start_cursor + isam*nchan*stride;
-		if (cursor <= data_len_words+nchan*data_size){
-			for (unsigned ic = 0; ic < nchan; ++ic){
-				if (EGU){
-					CHANNELS[ic][isam] = RAW[cursor+ic] * ESLO[ic] + EOFF[ic];
-					PRDEB(2 - (ic == 0 && isam <20))("%s EGU ic:%d isam:%d cursor:%ld %04x %.4f\n", __FUNCTION__, ic, isam, cursor, RAW[cursor+ic], CHANNELS[ic][isam]);
-				}else{
-					CHANNELS[ic][isam] = RAW[cursor+ic];
-					PRDEB(2 - (ic == 0 && isam <20))("%s RAW ic:%d isam:%d cursor:%ld %04x\n", __FUNCTION__, ic, isam, cursor, RAW[cursor+ic]);
-				}
-			}
-		}else{
-			PRDEB(1+overlimit)("cursor %lu reached limit of data at %d/%d fill with zeros (HACK) : set NORD would be better\n", cursor, isam, nsam);
-			overlimit = 1;
+    unsigned long start_cursor = startoff * nchan;
+    int overlimit = 0;
 
-			for (unsigned ic = 0; ic < nchan; ++ic){
-				CHANNELS[ic][isam] = 0;
-			}
-		}
-	}
+    // =========================================================================
+    // OPTIMIZATION: If stride is 1, read the entire chunk in one fast disk hit
+    // =========================================================================
+    if (stride == 1) {
+        unsigned long total_words = nsam * nchan;
+        size_t bytes_to_read = total_words * sizeof(epicsInt16);
+        unsigned long byte_offset = start_cursor * sizeof(epicsInt16);
 
-	for (unsigned ic = 0; ic < nchan; ic++){
-		PRDEB(4)("%s ic:%d nsam:%d P_CHANNEL:%d\n", __FUNCTION__, ic, nsam, P_CHANNEL);
-		asynStatus stat = doCallbacksFloat64Array(CHANNELS[ic], nsam, P_CHANNEL, ic);
-		// print only 1 channel for debug
-		if (ic == 0) {
-			printf("%s: CH:01 callback attempted nsam=%d stat=%d", __FUNCTION__, nsam, stat);
-		}
-	}
-	printf("%s 99 nchan:%d nsam:%d\n", __FUNCTION__, nchan, nsam);
+        // Allocate a temporary local buffer for this waveform grab
+        std::vector<epicsInt16> bulk_buffer(total_words, 0); 
+        
+        ssize_t bytes_read = pread(fileno(fp), bulk_buffer.data(), bytes_to_read, byte_offset);
+        if (bytes_read < 0) bytes_read = 0;
+        
+        size_t words_read = bytes_read / sizeof(epicsInt16);
+
+        for (unsigned isam = 0; isam < nsam; ++isam) {
+            for (unsigned ic = 0; ic < nchan; ++ic) {
+                unsigned long idx = isam * nchan + ic;
+                
+                if (idx < words_read) {
+                    if (EGU) {
+                        CHANNELS[ic][isam] = bulk_buffer[idx]; // * ESLO[ic] + EOFF[ic];
+                    } else {
+                        CHANNELS[ic][isam] = bulk_buffer[idx];
+                    }
+                } else {
+                    if (!overlimit) {
+                        PRDEB(1)("Reached limit of data, fill with zeros\n");
+                        overlimit = 1;
+                    }
+                    CHANNELS[ic][isam] = 0;
+                }
+            }
+        }
+    } 
+    // =========================================================================
+    // STRIDED VIEW: Read frame-by-frame to skip unneeded disk data
+    // =========================================================================
+    else {
+        // Buffer to hold one frame (all channels for a single sample time)
+        std::vector<epicsInt16> frame_buffer(nchan, 0);
+        size_t frame_bytes = nchan * sizeof(epicsInt16);
+
+        for (unsigned isam = 0; isam < nsam; ++isam) {
+            unsigned long cursor = start_cursor + isam * nchan * stride;
+            
+            if (cursor <= data_len_words + nchan * data_size) {
+                unsigned long byte_offset = cursor * sizeof(epicsInt16);
+                
+                ssize_t bytes_read = pread(fileno(fp), frame_buffer.data(), frame_bytes, byte_offset);
+                
+                for (unsigned ic = 0; ic < nchan; ++ic) {
+                    if (bytes_read > (ssize_t)(ic * sizeof(epicsInt16))) {
+                        if (EGU) {
+                            CHANNELS[ic][isam] = frame_buffer[ic]; // * ESLO[ic] + EOFF[ic];
+                        } else {
+                            CHANNELS[ic][isam] = frame_buffer[ic];
+                        }
+                    } else {
+                        CHANNELS[ic][isam] = 0;
+                    }
+                }
+            } else {
+                if (!overlimit) {
+                    PRDEB(1)("cursor %lu reached limit of data at %d/%d fill with zeros\n", cursor, isam, nsam);
+                    overlimit = 1;
+                }
+                for (unsigned ic = 0; ic < nchan; ++ic) {
+                    CHANNELS[ic][isam] = 0;
+                }
+            }
+        }
+    }
+
+    // Callbacks to push arrays to EPICS records
+    for (unsigned ic = 0; ic < nchan; ic++){
+        PRDEB(4)("%s ic:%d nsam:%d P_CHANNEL:%d\n", __FUNCTION__, ic, nsam, P_CHANNEL);
+        asynStatus stat = doCallbacksFloat64Array(CHANNELS[ic], nsam, P_CHANNEL, ic);
+        if (ic == 0) {
+            printf("%s: CH:01 callback attempted nsam=%d stat=%d\n", __FUNCTION__, nsam, stat);
+        }
+    }
+    printf("%s 99 nchan:%d nsam:%d\n", __FUNCTION__, nchan, nsam);
+}
+
+
+// Helper to print memory usage to the console
+void print_memory_usage(const char* prefix) {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.compare(0, 6, "VmRSS:") == 0) { // VmRSS is the actual Physical RAM used
+            printf("DEBUG MEM [%s]: %s\n", prefix, line.c_str());
+            break;
+        }
+    }
 }
 
 void MultiChannelScope::process_data() {
-    //printf("n_events_detected %d\n", n_events_detected);
-    if (!RAW || current_event_count >= MAX_NUM_EVENTS) return;
+    if (!fp || current_event_count >= MAX_NUM_EVENTS) return;
 
-    // If the file is growing dynamically, check the new size
-    // (Skip this if the file is pre-allocated to full size)
-    char datafile[128];
-    sprintf(datafile, "%s/%s", getenv("HOME"), portName);
-    long raw_file_size = GetFileSize(datafile);
-    if (raw_file_size < 0) {
-	    perror(datafile);
-    }
-    unsigned long current_file_size = (unsigned long)raw_file_size;
+    struct stat stat_buf;
+    if (fstat(fileno(fp), &stat_buf) != 0) return;
+    
+    unsigned long current_file_size = (unsigned long)stat_buf.st_size;
 
-
-
-    // Safety limit to avoid reading past mapped memory
     if (current_file_size > data_len) current_file_size = data_len;
+    if (current_file_size < sizeof(uint32_t)) return;
 
-    unsigned char* byte_data = (unsigned char*)RAW;
-    unsigned char target_sequence[] = {0x51, 0xF1, 0x55, 0xAA};
-    size_t seq_length = sizeof(target_sequence);
+    size_t limit = current_file_size - sizeof(uint32_t);
+    size_t aligned_start = (last_scanned_offset + 3) & ~3;
+
+    if (aligned_start > limit) return;
+
+    printf("DEBUG [%s]: Starting scan at offset %zu, file limit %zu\n", portName, aligned_start, limit);
+    print_memory_usage(portName);
+
+    const uint32_t MAGIC_NUM = 0xAA55F151;
     bool found_new_events = false;
 
-    if (current_file_size < seq_length) return;
-
-    if (last_scanned_offset > current_file_size) {
-	    last_scanned_offset = 0;
-    }
-
-    size_t limit = current_file_size - seq_length;
-
-    // Scan ONLY from where we left off last time
-    for (size_t i = last_scanned_offset; i <= limit; ++i) {
-        if (byte_data[i] == target_sequence[0] && 
-            memcmp(&byte_data[i], target_sequence, seq_length) == 0) {
-            
-            EVENTINDEX[current_event_count] = (epicsInt64)i;
-            current_event_count++;
-            found_new_events = true;
-	    printf("%s: FOUND EVENT\n", __FUNCTION__);
-	    n_events_detected += 1;
-	    //printf("n_events_detected %d\n", n_events_detected);
-            // If we have found an event we advance an entire ES forward
-	    // The ES is the length of one full sample (i.e. length of ES = SSB)
-	    if (ssb > 0) {
-		    i += (ssb - 1);
-	    }
-
-            if (current_event_count >= MAX_NUM_EVENTS) {
-		    last_scanned_offset = i + 1;
-		    break;
-	    }
-        }
-        
-        // Record how far we've searched
-        last_scanned_offset = i + 1;
-    }
-
-    // Only update EPICS if we actually found something new
-    // This prevents flooding the EPICS network with redundant arrays
-    if (found_new_events) {
-        asynStatus int_stat = setIntegerParam(P_N_EVENTS_DETECTED, current_event_count);
-	callParamCallbacks();
-
-        asynStatus stat = doCallbacksInt64Array(EVENTINDEX, MAX_NUM_EVENTS, P_EVENTINDEX, 0);
-	printf("%s: do CallbacksInt64Array returned %d\n", __FUNCTION__, stat);
-    }
+    size_t chunk_size = 10 * 1024 * 1024;
+    std::vector<uint8_t> buffer(chunk_size);
     
-    /* printf("%s 99 current_event_count: %d last_scanned_offset: %zu\n", __FUNCTION__, event_number, current_event_count, last_scanned_offset); */
+    int loop_counter = 0;
+
+    // SCANNING LOOP
+    while (aligned_start <= limit && current_event_count < MAX_NUM_EVENTS) {
+        
+        size_t bytes_to_read = chunk_size;
+        if (aligned_start + bytes_to_read > current_file_size) {
+            bytes_to_read = current_file_size - aligned_start;
+        }
+
+        // Print progress every 500 MB (50 loops of 10MB)
+        if (loop_counter % 50 == 0) {
+            printf("DEBUG [%s]: Scanning offset %zu (%.1f%% complete)\n", portName, aligned_start, (double)aligned_start / limit * 100.0);
+            print_memory_usage(portName);
+        }
+        loop_counter++;
+
+        ssize_t bytes_read = pread(fileno(fp), buffer.data(), bytes_to_read, aligned_start);
+        if (bytes_read <= 0) {
+            printf("DEBUG [%s]: pread failed or EOF. bytes_read=%zd\n", portName, bytes_read);
+            break;
+        }
+
+        size_t valid_limit = (size_t)bytes_read;
+        if (valid_limit >= sizeof(uint32_t)) {
+            valid_limit -= sizeof(uint32_t);
+        } else {
+            break;
+        }
+
+        size_t buffer_i = 0;
+        while (buffer_i <= valid_limit) {
+            const uint32_t* current_val = reinterpret_cast<const uint32_t*>(buffer.data() + buffer_i);
+            
+            if (*current_val == MAGIC_NUM) {
+                EVENTINDEX[current_event_count] = (epicsInt64)(aligned_start + buffer_i);
+                current_event_count++;
+                found_new_events = true;
+                n_events_detected += 1;
+                
+                printf("DEBUG [%s]: Found event %d at absolute byte %zu\n", portName, current_event_count, aligned_start + buffer_i);
+
+                if (ssb > 4) buffer_i += (ssb - 4);
+
+                if (current_event_count >= MAX_NUM_EVENTS) {
+                    aligned_start += buffer_i + 4;
+                    break;
+                }
+            }
+            buffer_i += 4;
+        }
+
+        // --- CRITICAL KERNEL CACHE FLUSH ---
+        // Force the OS to instantly delete this 10MB chunk from physical RAM (Page Cache)
+        posix_fadvise(fileno(fp), aligned_start, bytes_read, POSIX_FADV_DONTNEED);
+
+        if (current_event_count >= MAX_NUM_EVENTS) {
+            last_scanned_offset = aligned_start;
+            break;
+        }
+
+        aligned_start += bytes_read;
+        last_scanned_offset = aligned_start;
+    }
+
+    printf("DEBUG [%s]: Finished scan round. New offset: %zu\n", portName, last_scanned_offset);
+    print_memory_usage(portName);
+
+    if (found_new_events) {
+        setIntegerParam(P_N_EVENTS_DETECTED, current_event_count);
+        callParamCallbacks();
+        doCallbacksInt64Array(EVENTINDEX, MAX_NUM_EVENTS, P_EVENTINDEX, 0);
+    }
 }
 
 void MultiChannelScope::get_tb() {
