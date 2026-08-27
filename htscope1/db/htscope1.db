@@ -330,7 +330,7 @@ record(waveform, "$(HOST):$(UUT):STREAM:EVENTINDEX") {
         field(DTYP, "asynInt64ArrayIn")
         field(INP, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))EVENTINDEX")
         field(PINI, "NO")
-        field(NELM, "64")
+        field(NELM, "256")
         field(FTVL, "INT64")
         field(DESC, "byte number showing start of event")
         field(SCAN, "I/O Intr")
