@@ -17,8 +17,8 @@ export UUTS="${MASTER} ${SLAVE}"; ./scripts/make_htscope_st.cmd.py \
     $UUTS;
 
 echo ++ creating symlinks
-cd /root; ln -s /mnt/afhba.0/acq2106_133/000000/0.00 scarp:dt100:acq2106_133; cd -
-cd /root; ln -s /mnt/afhba.1/acq2106_130/000000/1.00 scarp:dt100:acq2106_130; cd -
+cd /root; ln -s /mnt/afhba.0/${MASTER}/000000/0.00 scarp:dt100:acq2106_133; cd -
+cd /root; ln -s /mnt/afhba.1/${SLAVE}/000000/1.00 scarp:dt100:acq2106_130; cd -
 
 echo ++ starting IOC and hts wrapper procservs
 ./init/start_servers
