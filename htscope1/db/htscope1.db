@@ -341,7 +341,7 @@ record(longout, "$(HOST):$(USER):$(UUT):SAVE_EVENT"){
         field(DTYP, "asynInt32")
         field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_EVENT")
 	field(DRVL, "0")
-	field(DRVH, "63")
+	field(DRVH, "255")
 	field(VAL,  "0")
 	field(PINI, "NO")
 }
