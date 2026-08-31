@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>ht_scope_controls</name>
-  <width>895</width>
-  <height>850</height>
+  <width>1641</width>
+  <height>1393</height>
+  <widget type="textupdate" version="2.0.0">
+    <name>save_all_events_button_stored</name>
+    <pv_name>loc://save_all_events_button_stored&lt;VDouble&gt;</pv_name>
+    <x>583</x>
+    <y>742</y>
+    <width>194</width>
+    <background_color>
+      <color name="Write_Background" red="128" green="255" blue="255">
+      </color>
+    </background_color>
+    <format>1</format>
+    <show_units>false</show_units>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
   <widget type="group" version="3.0.0">
     <name>Brand</name>
     <x>20</x>
@@ -1270,8 +1285,8 @@
   </widget>
   <widget type="group" version="3.0.0">
     <name>DEBUG</name>
-    <x>190</x>
-    <y>580</y>
+    <x>193</x>
+    <y>670</y>
     <width>442</width>
     <height>270</height>
     <visible>false</visible>
@@ -1503,8 +1518,8 @@
   </widget>
   <widget type="action_button" version="3.0.0">
     <name>Action Button_2</name>
-    <x>332</x>
-    <y>550</y>
+    <x>335</x>
+    <y>640</y>
     <width>1</width>
     <height>1</height>
     <tooltip>$(actions)</tooltip>
@@ -1523,8 +1538,8 @@
   </widget>
   <widget type="group" version="3.0.0">
     <name>selected_event</name>
-    <x>239</x>
-    <y>640</y>
+    <x>242</x>
+    <y>730</y>
     <width>190</width>
     <height>30</height>
     <style>3</style>
@@ -1563,8 +1578,8 @@
   <widget type="textupdate" version="2.0.0">
     <name>event_selector_stored</name>
     <pv_name>loc://PONG&lt;VLong&gt;(2)</pv_name>
-    <x>289</x>
-    <y>560</y>
+    <x>292</x>
+    <y>650</y>
     <visible>false</visible>
     <background_color>
       <color name="Write_Background" red="128" green="255" blue="255">
@@ -1576,8 +1591,8 @@
   <widget type="spinner" version="2.0.0">
     <name>event_selector</name>
     <pv_name>loc://PING&lt;VLong&gt;(2)</pv_name>
-    <x>25</x>
-    <y>640</y>
+    <x>28</x>
+    <y>730</y>
     <width>200</width>
     <height>30</height>
     <format>0</format>
@@ -1628,12 +1643,11 @@
   <widget type="group" version="3.0.0">
     <name>pre_selector</name>
     <macros>
-      <PV>PRE</PV>
+      <PV>PRE_UUT1</PV>
       <PRECISION>0</PRECISION>
     </macros>
-    <x>28</x>
-    <y>694</y>
-    <width>261</width>
+    <x>31</x>
+    <y>784</y>
     <height>32</height>
     <style>2</style>
     <transparent>true</transparent>
@@ -1682,11 +1696,11 @@
   <widget type="group" version="3.0.0">
     <name>post_selector</name>
     <macros>
-      <PV>POST</PV>
+      <PV>POST_UUT1</PV>
       <PRECISION>0</PRECISION>
     </macros>
-    <x>28</x>
-    <y>738</y>
+    <x>31</x>
+    <y>828</y>
     <width>261</width>
     <height>32</height>
     <style>2</style>
@@ -1736,18 +1750,18 @@
   <widget type="group" version="3.0.0">
     <name>save_event_selector</name>
     <macros>
-      <PV>SAVE_EVENT</PV>
+      <PV>SAVE_EVENT_UUT1</PV>
     </macros>
-    <x>27</x>
-    <y>601</y>
-    <width>313</width>
+    <x>30</x>
+    <y>691</y>
+    <width>350</width>
     <height>30</height>
     <style>3</style>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
       <name>save_event_display</name>
       <pv_name>$(HOST):$(USER):$(UUT_1):SAVE_EVENT</pv_name>
-      <x>133</x>
+      <x>170</x>
       <width>70</width>
       <height>30</height>
       <background_color>
@@ -1761,7 +1775,7 @@
     <widget type="spinner" version="2.0.0">
       <name>save_event_spinner</name>
       <pv_name>$(HOST):$(USER):$(UUT_1):SAVE_EVENT</pv_name>
-      <x>203</x>
+      <x>240</x>
       <width>110</width>
       <height>30</height>
       <precision>0</precision>
@@ -1770,12 +1784,12 @@
         </color>
       </background_color>
       <vertical_alignment>1</vertical_alignment>
-      <maximum>64.0</maximum>
+      <maximum></maximum>
     </widget>
     <widget type="label" version="2.0.0">
       <name>save_event_label</name>
       <text>${PV}</text>
-      <width>133</width>
+      <width>170</width>
       <height>30</height>
       <background_color>
         <color name="Read_Background" red="240" green="240" blue="240">
@@ -1790,8 +1804,8 @@
     <macros>
       <PV>N_EVENTS_DETECTED</PV>
     </macros>
-    <x>30</x>
-    <y>556</y>
+    <x>33</x>
+    <y>646</y>
     <width>313</width>
     <height>30</height>
     <style>3</style>
@@ -1826,8 +1840,8 @@
   <widget type="textupdate" version="2.0.0">
     <name>save_path_display</name>
     <pv_name>$(HOST):$(USER):$(UUT_1):SAVE_PATH</pv_name>
-    <x>543</x>
-    <y>690</y>
+    <x>546</x>
+    <y>780</y>
     <width>180</width>
     <height>30</height>
     <background_color>
@@ -1839,20 +1853,102 @@
     <vertical_alignment>1</vertical_alignment>
   </widget>
   <widget type="group" version="3.0.0">
-    <name>post_selector_1</name>
+    <name>save_path_selector</name>
     <macros>
       <PV>SAVE_PATH</PV>
     </macros>
-    <x>40</x>
-    <y>792</y>
-    <width>316</width>
+    <x>43</x>
+    <y>882</y>
+    <width>400</width>
+    <height>64</height>
+    <style>2</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>save_path_label</name>
+      <text>${PV} UUT1</text>
+      <width>184</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>save_path_display</name>
+      <pv_name>$(HOST):$(USER):$(UUT_1):$(PV)</pv_name>
+      <x>184</x>
+      <width>85</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="textentry" version="3.0.0">
+      <name>save_path_spinner</name>
+      <pv_name>$(HOST):$(USER):$(UUT_1):$(PV)</pv_name>
+      <x>269</x>
+      <width>119</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <format>1</format>
+      <precision>0</precision>
+      <show_units>false</show_units>
+    </widget>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>SAVE ALL EVENTS</name>
+    <actions>
+      <action type="write_pv">
+        <description>Write PV</description>
+        <pv_name>loc://save_all_events_button_stored</pv_name>
+        <value>1</value>
+      </action>
+    </actions>
+    <pv_name>loc://save_all_events_button_stored</pv_name>
+    <text>SAVE ALL EVENTS</text>
+    <x>583</x>
+    <y>680</y>
+    <width>195</width>
+    <height>62</height>
+    <scripts>
+      <script file="../scripts/save_all_events.py">
+        <pv_name trigger="false">$(HOST):$(UUT_1):STREAM:EVENTINDEX</pv_name>
+        <pv_name trigger="false">$(HOST):$(USER):$(UUT_1):SAVE_EVENT</pv_name>
+        <pv_name trigger="false">loc://save_all_events_button</pv_name>
+        <pv_name>loc://save_all_events_button_stored</pv_name>
+      </script>
+      <script file="../scripts/save_all_events.py">
+        <pv_name trigger="false">$(HOST):$(UUT_2):STREAM:EVENTINDEX</pv_name>
+        <pv_name trigger="false">$(HOST):$(USER):$(UUT_2):SAVE_EVENT</pv_name>
+        <pv_name trigger="false">loc://save_all_events_button</pv_name>
+        <pv_name>loc://save_all_events_button_stored</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>save_path_selector_2</name>
+    <macros>
+      <PV>SAVE_PATH</PV>
+    </macros>
+    <x>490</x>
+    <y>822</y>
+    <width>400</width>
     <height>32</height>
     <style>2</style>
     <transparent>true</transparent>
     <widget type="textentry" version="3.0.0">
-      <name>post_spinner_1</name>
-      <pv_name>$(HOST):$(USER):$(UUT_1):$(PV)</pv_name>
-      <x>184</x>
+      <name>save_path_spinner_2</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):$(PV)</pv_name>
+      <x>254</x>
       <width>131</width>
       <height>30</height>
       <background_color>
@@ -1864,9 +1960,9 @@
       <show_units>false</show_units>
     </widget>
     <widget type="textupdate" version="2.0.0">
-      <name>post_display_1</name>
-      <pv_name>$(HOST):$(USER):$(UUT_1):$(PV)</pv_name>
-      <x>99</x>
+      <name>save_path_display_2</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):$(PV)</pv_name>
+      <x>169</x>
       <width>85</width>
       <height>30</height>
       <background_color>
@@ -1878,9 +1974,9 @@
       <vertical_alignment>1</vertical_alignment>
     </widget>
     <widget type="label" version="2.0.0">
-      <name>post_label_1</name>
-      <text>${PV}</text>
-      <width>99</width>
+      <name>save_path_label_2</name>
+      <text>${PV} UUT2</text>
+      <width>160</width>
       <height>30</height>
       <background_color>
         <color name="Read_Background" red="240" green="240" blue="240">
@@ -1890,20 +1986,317 @@
       <vertical_alignment>1</vertical_alignment>
     </widget>
   </widget>
+  <widget type="group" version="3.0.0">
+    <name>detected_events_display</name>
+    <macros>
+      <PV>EVENTS_UUT1</PV>
+    </macros>
+    <x>28</x>
+    <y>474</y>
+    <width>1600</width>
+    <height>180</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="textupdate" version="2.0.0">
+      <name>detected_events_text</name>
+      <pv_name>$(HOST):$(UUT_1):STREAM:EVENTINDEX</pv_name>
+      <x>81</x>
+      <y>1</y>
+      <width>1500</width>
+      <height>180</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>detected_events_label</name>
+      <text>${PV}</text>
+      <x>1</x>
+      <y>1</y>
+      <width>80</width>
+      <height>160</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>detected_events_display_1</name>
+    <macros>
+      <PV>EVENTS_UUT2</PV>
+    </macros>
+    <x>31</x>
+    <y>930</y>
+    <width>1600</width>
+    <height>180</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="textupdate" version="2.0.0">
+      <name>detected_events_text_1</name>
+      <pv_name>$(HOST):$(UUT_2):STREAM:EVENTINDEX</pv_name>
+      <x>81</x>
+      <y>1</y>
+      <width>1500</width>
+      <height>163</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>detected_events_label_1</name>
+      <text>${PV}</text>
+      <x>1</x>
+      <y>4</y>
+      <width>80</width>
+      <height>160</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+  </widget>
   <widget type="action_button" version="3.0.0">
-    <name>SAVE ALL EVENTS</name>
-    <pv_name>loc://save_all_events_button</pv_name>
-    <text>SAVE ALL EVENTS</text>
-    <x>580</x>
-    <y>590</y>
-    <width>195</width>
-    <height>62</height>
-    <scripts>
-      <script file="../scripts/save_all_events.py">
-        <pv_name trigger="false">$(HOST):$(UUT_1):STREAM:EVENTINDEX</pv_name>
-        <pv_name trigger="false">$(HOST):$(USER):$(UUT_1):SAVE_EVENT</pv_name>
-        <pv_name>loc://save_all_events_button</pv_name>
-      </script>
-    </scripts>
+    <name>Action Button_3</name>
+    <x>563</x>
+    <y>1173</y>
+    <width>1</width>
+    <height>1</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>selected_event_1</name>
+    <x>310</x>
+    <y>1210</y>
+    <width>190</width>
+    <height>30</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="label" version="2.0.0">
+      <name>selected_event_label_1</name>
+      <text>SELECTED</text>
+      <width>80</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>selected_event_display_1</name>
+      <pv_name>loc://selected_event</pv_name>
+      <x>90</x>
+      <height>30</height>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <horizontal_alignment>1</horizontal_alignment>
+      <vertical_alignment>1</vertical_alignment>
+      <scripts>
+        <script file="../scripts/event_selector.py">
+          <pv_name>loc://PING</pv_name>
+          <pv_name trigger="false">loc://PONG</pv_name>
+          <pv_name trigger="false">scarp:acq2106_133:STREAM:EVENTINDEX</pv_name>
+          <pv_name trigger="false">loc://selected_event</pv_name>
+        </script>
+      </scripts>
+    </widget>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>event_selector_stored_1</name>
+    <pv_name>loc://PONG&lt;VLong&gt;(2)</pv_name>
+    <x>360</x>
+    <y>1130</y>
+    <visible>false</visible>
+    <background_color>
+      <color name="Write_Background" red="128" green="255" blue="255">
+      </color>
+    </background_color>
+    <format>1</format>
+    <show_units>false</show_units>
+  </widget>
+  <widget type="spinner" version="2.0.0">
+    <name>event_selector_1</name>
+    <pv_name>loc://PING&lt;VLong&gt;(2)</pv_name>
+    <x>96</x>
+    <y>1210</y>
+    <width>200</width>
+    <height>30</height>
+    <format>0</format>
+    <precision>0</precision>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>pre_selector_1</name>
+    <macros>
+      <PV>PRE_UUT2</PV>
+      <PRECISION>0</PRECISION>
+    </macros>
+    <x>43</x>
+    <y>1264</y>
+    <width>317</width>
+    <height>32</height>
+    <style>2</style>
+    <transparent>true</transparent>
+    <widget type="spinner" version="2.0.0">
+      <name>pre_spinner_1</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):PRE</pv_name>
+      <x>205</x>
+      <width>110</width>
+      <height>30</height>
+      <precision>0</precision>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <vertical_alignment>1</vertical_alignment>
+      <maximum></maximum>
+      <increment>1.6E8</increment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>pre_display_1</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):PRE</pv_name>
+      <x>135</x>
+      <width>70</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>pre_label_1</name>
+      <text>${PV}</text>
+      <width>135</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>post_selector_2</name>
+    <macros>
+      <PV>POST_UUT2</PV>
+      <PRECISION>0</PRECISION>
+    </macros>
+    <x>43</x>
+    <y>1308</y>
+    <width>317</width>
+    <height>32</height>
+    <style>2</style>
+    <transparent>true</transparent>
+    <widget type="spinner" version="2.0.0">
+      <name>post_spinner_2</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):POST</pv_name>
+      <x>205</x>
+      <width>110</width>
+      <height>30</height>
+      <precision>0</precision>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <vertical_alignment>1</vertical_alignment>
+      <maximum></maximum>
+      <increment>1.6E8</increment>
+    </widget>
+    <widget type="textupdate" version="2.0.0">
+      <name>post_display_2</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):POST</pv_name>
+      <x>135</x>
+      <width>70</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>post_label_2</name>
+      <text>${PV}</text>
+      <width>135</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+  </widget>
+  <widget type="group" version="3.0.0">
+    <name>save_event_selector_uut2</name>
+    <macros>
+      <PV>SAVE_EVENT_UUT2</PV>
+    </macros>
+    <x>43</x>
+    <y>1171</y>
+    <width>368</width>
+    <height>30</height>
+    <style>3</style>
+    <transparent>true</transparent>
+    <widget type="textupdate" version="2.0.0">
+      <name>save_event_display_1</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):SAVE_EVENT</pv_name>
+      <x>188</x>
+      <width>70</width>
+      <height>30</height>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <precision>0</precision>
+      <show_units>false</show_units>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
+    <widget type="spinner" version="2.0.0">
+      <name>save_event_spinner_1</name>
+      <pv_name>$(HOST):$(USER):$(UUT_2):SAVE_EVENT</pv_name>
+      <x>258</x>
+      <width>110</width>
+      <height>30</height>
+      <precision>0</precision>
+      <background_color>
+        <color name="Header_ForeGround" red="255" green="255" blue="255">
+        </color>
+      </background_color>
+      <vertical_alignment>1</vertical_alignment>
+      <maximum></maximum>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>save_event_label_1</name>
+      <text>${PV}</text>
+      <width>188</width>
+      <height>30</height>
+      <background_color>
+        <color name="Read_Background" red="240" green="240" blue="240">
+        </color>
+      </background_color>
+      <transparent>false</transparent>
+      <vertical_alignment>1</vertical_alignment>
+    </widget>
   </widget>
 </display>
