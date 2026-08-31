@@ -356,6 +356,11 @@ record(longin, "$(HOST):$(USER):$(UUT):N_EVENTS_DETECTED"){
 record(lso, "$(HOST):$(USER):$(UUT):SAVE_PATH"){
         field(DTYP, "asynOctetWrite")
         field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_PATH")
+        field(VAL, "$(UUT)")
+
+        field(DOL,  "{\"const\":\"$(UUT)\"}")
+        field(OMSL, "closed_loop")
+
         field(SIZV, "512")
         field(PINI, "YES")
         info(asyn:READBACK, "1")

@@ -25,6 +25,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <iostream>
+#include <filesystem>
 
 long GetFileSize(const std::string& filename) {
     struct stat stat_buf;
@@ -590,9 +591,22 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	if (!path_str.empty() && path_str.back() != '/') {
 		path_str += "/";
 	}
+        // make sure dir exists
+	std::string full_dir_path = "/tmp/" + path_str;
+	std::error_code ec;
+        std::filesystem::create_directories(full_dir_path, ec);
+	if (ec) {
+		printf("Failed to create directory structure %s: %s\n", full_dir_path, ec);
+		return false;
+	}
+	else {
+		printf("Created directory structure %s: %d\n", full_dir_path.c_str(), ec);
+	}
+
+
 	// Create unique filename
 	char filename[512];
-	snprintf(filename, sizeof(filename), "%sevent-%d-%lld-%lld-%lld.dat", path_str.c_str(),  event_array_index, (long long)start_byte, (long long)pre_samples, (long long)post_samples);
+	snprintf(filename, sizeof(filename), "%sevent-%d-%lld-%lld-%lld.dat", full_dir_path.c_str(),  event_array_index, (long long)start_byte, (long long)pre_samples, (long long)post_samples);
 	printf("Saving to: %s\n", filename);
 
 	FILE *out_fp = fopen(filename, "wb");
@@ -626,11 +640,12 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	if (ip && user && pass) {
 	    char cmd[1024];
 	    // -s silent and -T to upload file
-	    snprintf(cmd, sizeof(cmd), "curl -s -T %s ftp://%s/ --user %s:%s &",
-		    filename, ip, user, pass);
+	    snprintf(cmd, sizeof(cmd), "curl -s -T %s ftp://%s/%s --user %s:%s &",
+		    filename, ip, path_str.c_str(), user, pass);
 
 	    int rc = std::system(cmd);
 	    if (rc != 0) {
+		printf("Failed to open file for writing via FTP. path:%s file:%s ip:%s user:%s pass:%s", path_str.c_str(), filename, ip, user, pass);
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 			"failed to spawn background FTP transfer\n.");
 	    }
