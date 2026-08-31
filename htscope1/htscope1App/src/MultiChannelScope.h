@@ -28,6 +28,12 @@
 #define PS_EVENTINDEX		"EVENTINDEX"			/* asynInt64,       r/w */
 #define PS_PRE		"PRE"			/* asynInt64,       r/w */
 #define PS_POST		"POST"			/* asynInt64,       r/w */
+#define PS_SAVE_EVENT "SAVE_EVENT"
+#define PS_N_EVENTS_DETECTED "N_EVENTS_DETECTED"
+#define PS_SAVE_PATH "SAVE_PATH"                /* asynOctet */
+
+#define MAX_NUM_EVENTS 256
+
 typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;
 typedef epicsInt64   EVTYPE;
@@ -82,6 +88,9 @@ private:
 	int P_EVENTINDEX;
 	int P_PRE;
 	int P_POST;
+	int P_SAVE_EVENT;
+	int P_N_EVENTS_DETECTED;
+	int P_SAVE_PATH;
 
     // Add private members for scope data
     unsigned long data_len;
@@ -100,6 +109,7 @@ private:
     epicsFloat64* ESLO;
     epicsFloat64* EOFF;
     epicsInt64* EVENTINDEX;
+    epicsInt32 n_events_detected;
     int EGU;                    /* EGU if set, RAW if not set */
 
     void get_tb();
@@ -108,6 +118,7 @@ private:
     void init_data();
     bool mmap_uut_data();   // return True on success
     void unmap_uut_data();
+    bool save_clipped_event(int);
 };
 
 #endif /* HTSCOPE1_HTSCOPE1APP_SRC_MULTICHANNELSCOPE_H_ */

@@ -19,10 +19,12 @@
 #include <string>
 
 
-
+#include <unistd.h>
+#include <vector>
+#include <fcntl.h>
+#include <fstream>
 #include <sys/stat.h>
 #include <iostream>
-#include <string>
 
 long GetFileSize(const std::string& filename) {
     struct stat stat_buf;
@@ -35,8 +37,8 @@ long GetFileSize(const std::string& filename) {
 MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int maxPoints, unsigned _data_size) :
 		 asynPortDriver(portName,
 							 numChannels,
-							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask | asynInt64ArrayMask,
-							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask | asynInt64ArrayMask,
+							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask | asynInt32ArrayMask | asynInt64ArrayMask | asynOctetMask,
+							 asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynFloat64ArrayMask | asynInt32ArrayMask | asynInt64ArrayMask | asynOctetMask,
 							 ASYN_CANBLOCK | ASYN_MULTIDEVICE,
 							 1,
 							 0,
@@ -63,11 +65,15 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
 	createParam(PS_EVENTINDEX,               asynParamInt64Array,             &P_EVENTINDEX);
 	createParam(PS_PRE,               asynParamInt64,             &P_PRE);
 	createParam(PS_POST,               asynParamInt64,             &P_POST);
+	createParam(PS_SAVE_EVENT,               asynParamInt32,             &P_SAVE_EVENT);
+	createParam(PS_N_EVENTS_DETECTED,               asynParamInt32,             &P_N_EVENTS_DETECTED);
+	createParam(PS_SAVE_PATH,               asynParamOctet,             &P_SAVE_PATH);
 
 	setIntegerParam(P_NCHAN, 			nchan);
 	setIntegerParam(P_NSAM, 			nsam);
 	setInteger64Param(P_PRE, 			0);
 	setInteger64Param(P_POST, 			0);
+	setStringParam(P_SAVE_PATH, 			"/tmp");
 	/*
 	// Create parameters for each channel
 	for (int ii = 0; ii < numChannels; ii++) {
@@ -103,7 +109,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
         return;
     }
 
-    EVENTINDEX = new epicsInt64[64];
+    EVENTINDEX = new epicsInt64[MAX_NUM_EVENTS];
     ESLO = new epicsFloat64[nchan];
     EOFF = new epicsFloat64[nchan];
     for (unsigned ic = 0; ic < nchan; ++ic){
@@ -111,7 +117,7 @@ MultiChannelScope::MultiChannelScope(const char *portName, int numChannels, int 
         EOFF[ic] = 0;
 
     }
-    for (unsigned ic = 0; ic < 64; ++ic){
+    for (unsigned ic = 0; ic < MAX_NUM_EVENTS; ++ic){
 	EVENTINDEX[ic] = 0;
     }
 }
@@ -155,7 +161,6 @@ void MultiChannelScope::displayTask(void)
 		lock();
 		if (mmap_active && refresh){
 			get_tb();
-			process_data();
 			status = setIntegerParam(P_REFRESHr, refresh = 0);
 			printf("%s %s rc %d\n", __FUNCTION__, "setIntegerParam", status);
 #if 0
@@ -211,7 +216,7 @@ bool MultiChannelScope::mmap_uut_data() {
 	char datafile[128];
 	last_scanned_offset = 0;
 	current_event_count = 0;
-	memset(EVENTINDEX, 0, 64 * sizeof(epicsInt64));
+	memset(EVENTINDEX, 0, MAX_NUM_EVENTS * sizeof(epicsInt64));
 
 	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
 
@@ -237,22 +242,12 @@ bool MultiChannelScope::mmap_uut_data() {
 	data_len_samples = data_len/ssb;
 
 	PRDEB(1)("data_len: %ld words: %ld samples %ld\n", data_len, data_len_words, data_len_samples);
+	return true;
 
-	void* rc = mmap(0, data_len, PROT_READ, MAP_SHARED, fileno(fp), 0);
-	if (rc == MAP_FAILED){
-		RAW = 0;
-		fprintf(stdout, "%s WARNING mmap fail data_len:%lu samples file_size:%ld\n", __FUNCTION__, data_len, file_size);
-		return false;
-	}else{
-		RAW = (epicsInt16*)rc;
-		PRDEB(1)("RAW:%p SUCCESS\n", RAW);
-		return true;
-	}
 }
 
 void MultiChannelScope::unmap_uut_data() {
 	if (RAW){
-		munmap(RAW, data_len);
 		RAW = 0;
 	}
 	if (fp){
@@ -260,116 +255,234 @@ void MultiChannelScope::unmap_uut_data() {
 		fp = 0;
 	}
 }
+
+#include <unistd.h>
+#include <vector>
+
 void MultiChannelScope::get_data() {
-	double delay = 0;
-	double fs = 2e6;
+    double delay = 0;
+    double fs = 2e6;
 
-	asynStatus status = getDoubleParam(P_DELAY, &delay);
-	if (status != asynSuccess){
-		delay = 0;
-		printf("ERROR: %s failed to retrieve P_DELAY, setting default %.3g\n", __FUNCTION__, delay);
-	}
-	status = getDoubleParam(P_FS, &fs);
-	if (status != asynSuccess){
-		fs = 2e6;
-		printf("ERROR: %s failed to retrieve P_FS, setting default %.3g\n", __FUNCTION__, fs);
-	}
-	startoff = delay*fs;
-	printf("%s startoff:%ld (samples) stride:%u\n", __FUNCTION__, startoff, stride);
+    // Safety check: ensure file is actually open
+    if (!fp) {
+        printf("ERROR: %s file pointer is null. Is the DAQ file open?\n", __FUNCTION__);
+        return;
+    }
 
-	unsigned long start_cursor = startoff*nchan;
-	int overlimit = 0;
+    asynStatus status = getDoubleParam(P_DELAY, &delay);
+    if (status != asynSuccess){
+        delay = 0;
+        printf("ERROR: %s failed to retrieve P_DELAY, setting default %.3g\n", __FUNCTION__, delay);
+    }
+    status = getDoubleParam(P_FS, &fs);
+    if (status != asynSuccess){
+        fs = 2e6;
+        printf("ERROR: %s failed to retrieve P_FS, setting default %.3g\n", __FUNCTION__, fs);
+    }
+    
+    startoff = delay * fs;
+    printf("%s startoff:%ld (samples) stride:%u\n", __FUNCTION__, startoff, stride);
 
-	for (unsigned isam = 0; isam < nsam; ++isam){
-		unsigned long cursor = start_cursor + isam*nchan*stride;
-		if (cursor <= data_len_words+nchan*data_size){
-			for (unsigned ic = 0; ic < nchan; ++ic){
-				if (EGU){
-					CHANNELS[ic][isam] = RAW[cursor+ic] * ESLO[ic] + EOFF[ic];
-					PRDEB(2 - (ic == 0 && isam <20))("%s EGU ic:%d isam:%d cursor:%ld %04x %.4f\n", __FUNCTION__, ic, isam, cursor, RAW[cursor+ic], CHANNELS[ic][isam]);
-				}else{
-					CHANNELS[ic][isam] = RAW[cursor+ic];
-					PRDEB(2 - (ic == 0 && isam <20))("%s RAW ic:%d isam:%d cursor:%ld %04x\n", __FUNCTION__, ic, isam, cursor, RAW[cursor+ic]);
-				}
-			}
-		}else{
-			PRDEB(1+overlimit)("cursor %lu reached limit of data at %d/%d fill with zeros (HACK) : set NORD would be better\n", cursor, isam, nsam);
-			overlimit = 1;
+    unsigned long start_cursor = startoff * nchan;
+    int overlimit = 0;
 
-			for (unsigned ic = 0; ic < nchan; ++ic){
-				CHANNELS[ic][isam] = 0;
-			}
-		}
-	}
+    // =========================================================================
+    // OPTIMIZATION: If stride is 1, read the entire chunk in one fast disk hit
+    // =========================================================================
+    if (stride == 1) {
+        unsigned long total_words = nsam * nchan;
+        size_t bytes_to_read = total_words * sizeof(epicsInt16);
+        unsigned long byte_offset = start_cursor * sizeof(epicsInt16);
 
-	for (unsigned ic = 0; ic < nchan; ic++){
-		PRDEB(4)("%s ic:%d nsam:%d P_CHANNEL:%d\n", __FUNCTION__, ic, nsam, P_CHANNEL);
-		asynStatus stat = doCallbacksFloat64Array(CHANNELS[ic], nsam, P_CHANNEL, ic);
-		// print only 1 channel for debug
-		if (ic == 0) {
-			printf("%s: CH:01 callback attempted nsam=%d stat=%d", __FUNCTION__, nsam, stat);
-		}
-	}
-	printf("%s 99 nchan:%d nsam:%d\n", __FUNCTION__, nchan, nsam);
+        // Allocate a temporary local buffer for this waveform grab
+        std::vector<epicsInt16> bulk_buffer(total_words, 0); 
+        
+        ssize_t bytes_read = pread(fileno(fp), bulk_buffer.data(), bytes_to_read, byte_offset);
+        if (bytes_read < 0) bytes_read = 0;
+        
+        size_t words_read = bytes_read / sizeof(epicsInt16);
+
+        for (unsigned isam = 0; isam < nsam; ++isam) {
+            for (unsigned ic = 0; ic < nchan; ++ic) {
+                unsigned long idx = isam * nchan + ic;
+                
+                if (idx < words_read) {
+                    if (EGU) {
+                        CHANNELS[ic][isam] = bulk_buffer[idx]; // * ESLO[ic] + EOFF[ic];
+                    } else {
+                        CHANNELS[ic][isam] = bulk_buffer[idx];
+                    }
+                } else {
+                    if (!overlimit) {
+                        PRDEB(1)("Reached limit of data, fill with zeros\n");
+                        overlimit = 1;
+                    }
+                    CHANNELS[ic][isam] = 0;
+                }
+            }
+        }
+    } 
+    // =========================================================================
+    // STRIDED VIEW: Read frame-by-frame to skip unneeded disk data
+    // =========================================================================
+    else {
+        // Buffer to hold one frame (all channels for a single sample time)
+        std::vector<epicsInt16> frame_buffer(nchan, 0);
+        size_t frame_bytes = nchan * sizeof(epicsInt16);
+
+        for (unsigned isam = 0; isam < nsam; ++isam) {
+            unsigned long cursor = start_cursor + isam * nchan * stride;
+            
+            if (cursor <= data_len_words + nchan * data_size) {
+                unsigned long byte_offset = cursor * sizeof(epicsInt16);
+                
+                ssize_t bytes_read = pread(fileno(fp), frame_buffer.data(), frame_bytes, byte_offset);
+                
+                for (unsigned ic = 0; ic < nchan; ++ic) {
+                    if (bytes_read > (ssize_t)(ic * sizeof(epicsInt16))) {
+                        if (EGU) {
+                            CHANNELS[ic][isam] = frame_buffer[ic]; // * ESLO[ic] + EOFF[ic];
+                        } else {
+                            CHANNELS[ic][isam] = frame_buffer[ic];
+                        }
+                    } else {
+                        CHANNELS[ic][isam] = 0;
+                    }
+                }
+            } else {
+                if (!overlimit) {
+                    PRDEB(1)("cursor %lu reached limit of data at %d/%d fill with zeros\n", cursor, isam, nsam);
+                    overlimit = 1;
+                }
+                for (unsigned ic = 0; ic < nchan; ++ic) {
+                    CHANNELS[ic][isam] = 0;
+                }
+            }
+        }
+    }
+
+    // Callbacks to push arrays to EPICS records
+    for (unsigned ic = 0; ic < nchan; ic++){
+        PRDEB(4)("%s ic:%d nsam:%d P_CHANNEL:%d\n", __FUNCTION__, ic, nsam, P_CHANNEL);
+        asynStatus stat = doCallbacksFloat64Array(CHANNELS[ic], nsam, P_CHANNEL, ic);
+        if (ic == 0) {
+            printf("%s: CH:01 callback attempted nsam=%d stat=%d\n", __FUNCTION__, nsam, stat);
+        }
+    }
+    printf("%s 99 nchan:%d nsam:%d\n", __FUNCTION__, nchan, nsam);
+}
+
+
+// Helper to print memory usage to the console
+void print_memory_usage(const char* prefix) {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.compare(0, 6, "VmRSS:") == 0) { // VmRSS is the actual Physical RAM used
+            printf("DEBUG MEM [%s]: %s\n", prefix, line.c_str());
+            break;
+        }
+    }
 }
 
 void MultiChannelScope::process_data() {
-    if (!RAW || current_event_count >= 64) return;
+    if (!fp || current_event_count >= MAX_NUM_EVENTS) return;
 
-    // If the file is growing dynamically, check the new size
-    // (Skip this if the file is pre-allocated to full size)
-    char datafile[128];
-    sprintf(datafile, "%s/%s", getenv("HOME"), portName);
-    long raw_file_size = GetFileSize(datafile);
-    if (raw_file_size < 0) {
-	    perror(datafile);
-    }
-    unsigned long current_file_size = (unsigned long)raw_file_size;
+    struct stat stat_buf;
+    if (fstat(fileno(fp), &stat_buf) != 0) return;
+    
+    unsigned long current_file_size = (unsigned long)stat_buf.st_size;
 
-
-
-    // Safety limit to avoid reading past mapped memory
     if (current_file_size > data_len) current_file_size = data_len;
+    if (current_file_size < sizeof(uint32_t)) return;
 
-    unsigned char* byte_data = (unsigned char*)RAW;
-    unsigned char target_sequence[] = {0x51, 0xF1, 0x55, 0xAA};
-    //unsigned char target_sequence[] = {0x00, 0x00, 0x00, 0x00};
-    size_t seq_length = sizeof(target_sequence);
+    size_t limit = current_file_size - sizeof(uint32_t);
+    size_t aligned_start = (last_scanned_offset + 3) & ~3;
+
+    if (aligned_start > limit) return;
+
+    printf("DEBUG [%s]: Starting scan at offset %zu, file limit %zu\n", portName, aligned_start, limit);
+    print_memory_usage(portName);
+
+    const uint32_t MAGIC_NUM = 0xAA55F151;
     bool found_new_events = false;
 
-    if (current_file_size < seq_length) return;
-
-    if (last_scanned_offset > current_file_size) {
-	    last_scanned_offset = 0;
-    }
-
-    size_t limit = current_file_size - seq_length;
-
-    // Scan ONLY from where we left off last time
-    for (size_t i = last_scanned_offset; i <= limit; ++i) {
-        if (byte_data[i] == target_sequence[0] && 
-            memcmp(&byte_data[i], target_sequence, seq_length) == 0) {
-            
-            EVENTINDEX[current_event_count] = (epicsInt64)i;
-            current_event_count++;
-            found_new_events = true;
-	    printf("%s: FOUND EVENT\n", __FUNCTION__);
-
-            if (current_event_count >= 64) break;
-        }
-        
-        // Record how far we've searched
-        last_scanned_offset = i + 1;
-    }
-
-    // Only update EPICS if we actually found something new
-    // This prevents flooding the EPICS network with redundant arrays
-    if (found_new_events) {
-        asynStatus stat = doCallbacksInt64Array(EVENTINDEX, 64, P_EVENTINDEX, 0);
-	printf("%s: do CallbacksInt64Array returned %d\n", __FUNCTION__, stat);
-    }
+    size_t chunk_size = 10 * 1024 * 1024;
+    std::vector<uint8_t> buffer(chunk_size);
     
-    /* printf("%s 99 current_event_count: %d last_scanned_offset: %zu\n", __FUNCTION__, event_number, current_event_count, last_scanned_offset); */
+    int loop_counter = 0;
+
+    // SCANNING LOOP
+    while (aligned_start <= limit && current_event_count < MAX_NUM_EVENTS) {
+        
+        size_t bytes_to_read = chunk_size;
+        if (aligned_start + bytes_to_read > current_file_size) {
+            bytes_to_read = current_file_size - aligned_start;
+        }
+
+        // Print progress every 500 MB (50 loops of 10MB)
+        if (loop_counter % 50 == 0) {
+            printf("DEBUG [%s]: Scanning offset %zu (%.1f%% complete)\n", portName, aligned_start, (double)aligned_start / limit * 100.0);
+            print_memory_usage(portName);
+        }
+        loop_counter++;
+
+        ssize_t bytes_read = pread(fileno(fp), buffer.data(), bytes_to_read, aligned_start);
+        if (bytes_read <= 0) {
+            printf("DEBUG [%s]: pread failed or EOF. bytes_read=%zd\n", portName, bytes_read);
+            break;
+        }
+
+        size_t valid_limit = (size_t)bytes_read;
+        if (valid_limit >= sizeof(uint32_t)) {
+            valid_limit -= sizeof(uint32_t);
+        } else {
+            break;
+        }
+
+        size_t buffer_i = 0;
+        while (buffer_i <= valid_limit) {
+            const uint32_t* current_val = reinterpret_cast<const uint32_t*>(buffer.data() + buffer_i);
+            
+            if (*current_val == MAGIC_NUM) {
+                EVENTINDEX[current_event_count] = (epicsInt64)(aligned_start + buffer_i);
+                current_event_count++;
+                found_new_events = true;
+                n_events_detected += 1;
+                
+                printf("DEBUG [%s]: Found event %d at absolute byte %zu\n", portName, current_event_count, aligned_start + buffer_i);
+
+                if (ssb > 4) buffer_i += (ssb - 4);
+
+                if (current_event_count >= MAX_NUM_EVENTS) {
+                    aligned_start += buffer_i + 4;
+                    break;
+                }
+            }
+            buffer_i += 4;
+        }
+
+        // --- CRITICAL KERNEL CACHE FLUSH ---
+        // Force the OS to instantly delete this 10MB chunk from physical RAM (Page Cache)
+        posix_fadvise(fileno(fp), aligned_start, bytes_read, POSIX_FADV_DONTNEED);
+
+        if (current_event_count >= MAX_NUM_EVENTS) {
+            last_scanned_offset = aligned_start;
+            break;
+        }
+
+        aligned_start += bytes_read;
+        last_scanned_offset = aligned_start;
+    }
+
+    printf("DEBUG [%s]: Finished scan round. New offset: %zu\n", portName, last_scanned_offset);
+    print_memory_usage(portName);
+
+    if (found_new_events) {
+        setIntegerParam(P_N_EVENTS_DETECTED, current_event_count);
+        callParamCallbacks();
+        doCallbacksInt64Array(EVENTINDEX, MAX_NUM_EVENTS, P_EVENTINDEX, 0);
+    }
 }
 
 void MultiChannelScope::get_tb() {
@@ -405,6 +518,128 @@ void MultiChannelScope::get_tb() {
 	}
 	PRDEB(1)("%s doCallbacksFloat64Array(%p, %d, %d, %d)\n", __FUNCTION__, TB, nsam, P_TB, 0);
 	doCallbacksFloat64Array(TB, nsam, P_TB, 0);
+}
+
+bool MultiChannelScope::save_clipped_event(int event_array_index) {
+        // Validate requested event exists
+	if (event_array_index < 0 || event_array_index >= current_event_count) {
+	        printf("%s: event %d does not exist. Max event is %d", __FUNCTION__, event_array_index, current_event_count);
+	        return false;
+	}
+
+	// Ensure the main data file actually open
+	if (!fp) {
+		printf("ERROR: %s main file pointer is null.\n", __FUNCTION__);
+		return false;
+	}
+
+	// Fetch PRE and POST from EPICS parameters
+	epicsInt64 pre_samples = 0;
+	epicsInt64 post_samples = 0;
+	getInteger64Param(P_PRE, &pre_samples);
+	getInteger64Param(P_POST, &post_samples);
+        
+	char datafile[256];
+	snprintf(datafile, sizeof(datafile), "%s/%s", getenv("HOME") ? getenv("HOME") : "/tmp", portName);
+	long raw_file_size = GetFileSize(datafile);
+	if (raw_file_size < 0) {
+	    perror(datafile);
+	    return false;
+	}
+	epicsInt64 current_file_size = (epicsInt64)raw_file_size;
+	
+	// Get byte offset of specific event from event index array
+	epicsInt64 byte_offset = EVENTINDEX[event_array_index];
+
+	// calculate the window to clip in bytes
+	epicsInt64 total_samples = pre_samples + 1 + post_samples;
+	epicsInt64 total_bytes = total_samples * ssb;
+
+	// Calculate where to start copying
+	epicsInt64 start_byte = byte_offset - (pre_samples * ssb);
+
+	printf("ssb is: %d total_samples: %lld\n", ssb, (long long)total_samples); 
+	// Do a boundary check
+	// Did PRE push us before the beginning or POST after the end?
+	if (start_byte < 0) {
+		epicsInt64 bytes_lost = 0 - start_byte;
+		start_byte = 0;
+		total_bytes -= bytes_lost;
+		printf("%s: Warning - PRE window truncated to start of file. start_byte idx: %lld PRE: %lld\n", 
+				__FUNCTION__, (long long)start_byte, (long long)pre_samples);
+	}
+
+	epicsInt64 end_byte = current_file_size;
+	if (start_byte + total_bytes > current_file_size) {
+		total_bytes = end_byte - start_byte;
+		printf("%s: Warning - POST window truncated to end of file. start_byte idx: %lld POST: %lld file_size: %lld\n",
+				__FUNCTION__, (long long)start_byte, (long long)post_samples, (long long)current_file_size);
+	}
+
+	if (total_bytes <= 0) {
+		printf("%s: Error- calculated clip size is 0 bytes.\n", __FUNCTION__);
+		return false;
+	}
+
+	// Write to disk
+	// Fetch user defined path
+	char base_path[256];
+	getStringParam(P_SAVE_PATH, sizeof(base_path), base_path);
+	// Ensure there is a trailing slash
+	std::string path_str(base_path);
+	if (!path_str.empty() && path_str.back() != '/') {
+		path_str += "/";
+	}
+	// Create unique filename
+	char filename[512];
+	snprintf(filename, sizeof(filename), "%sevent-%d-%lld-%lld-%lld.dat", path_str.c_str(),  event_array_index, (long long)start_byte, (long long)pre_samples, (long long)post_samples);
+	printf("Saving to: %s\n", filename);
+
+	FILE *out_fp = fopen(filename, "wb");
+	if (!out_fp) {
+		printf("Failed to open file for writing %s. Does the directory exist?\n", filename);
+		return false;
+	}
+
+	// Pull exact bytes straight from disk
+	std::vector<uint8_t> clip_buffer(total_bytes);
+	ssize_t bytes_read = pread(fileno(fp), clip_buffer.data(), total_bytes, start_byte);
+
+	if (bytes_read <= 0) {
+		printf("ERROR: %s failed to read data from source file (pread returned %zd)\n", __FUNCTION__, bytes_read);
+		fclose(out_fp);
+		return false;
+	}
+
+	// dump buffer to new file
+	size_t written = fwrite(clip_buffer.data(), 1, bytes_read, out_fp);
+	fclose(out_fp);
+
+	printf("%s: SUCCESS. Saved event %d to %s. (requested %lld bytes, saved %zu bytes)\n",
+			__FUNCTION__, event_array_index, filename, (long long)(total_samples * ssb), written);
+	
+	// send file over FTP to FTP server
+	const char* ip = getenv("FTP_IP");
+	const char* user = getenv("FTP_USER");
+	const char* pass = getenv("FTP_PASS");
+
+	if (ip && user && pass) {
+	    char cmd[1024];
+	    // -s silent and -T to upload file
+	    snprintf(cmd, sizeof(cmd), "curl -s -T %s ftp://%s/ --user %s:%s &",
+		    filename, ip, user, pass);
+
+	    int rc = std::system(cmd);
+	    if (rc != 0) {
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+			"failed to spawn background FTP transfer\n.");
+	    }
+	} else {
+	    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+		    "FTP environment variables not set in st.cmd FTP_USER FTP_PASS FTP_IP\n");
+	}
+
+	return true;
 }
 
 asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
@@ -451,6 +686,12 @@ asynStatus MultiChannelScope::writeInt32(asynUser *pasynUser, epicsInt32 value)
     	status = (asynStatus) setIntegerParam(addr, P_MMAPUNMAPr, value);
     	if (status != 0) printf("ERROR %s setIntegerParam %d, %d, %d fail\n", __FUNCTION__,  addr, P_MMAPUNMAPr, value);
     }
+    else if (function == P_SAVE_EVENT) {
+	    save_clipped_event(value);
+    }
+    //else if (function == P_N_EVENTS_DETECTED) {
+    //	    n_events_detected = value;
+    //}
 
     /* Do callbacks so higher layers see any changes */
     status = (asynStatus) callParamCallbacks(addr, addr);

@@ -1601,6 +1601,46 @@
     <vertical_alignment>1</vertical_alignment>
   </widget>
   <widget type="group" version="3.0.0">
+    <name>events</name>
+    <macros>
+      <PV>EVENTS</PV>
+    </macros>
+    <x>28</x>
+    <y>474</y>
+    <width>813</width>
+    <height>32</height>
+    <style>2</style>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>events text</name>
+    <pv_name>$(HOST):$(UUT_1):STREAM:EVENTINDEX</pv_name>
+    <x>109</x>
+    <y>475</y>
+    <width>732</width>
+    <height>65</height>
+    <background_color>
+      <color name="Header_ForeGround" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+    <precision>0</precision>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>events label</name>
+    <text>${PV}</text>
+    <x>29</x>
+    <y>475</y>
+    <width>80</width>
+    <height>55</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="group" version="3.0.0">
     <name>pre_selector</name>
     <macros>
       <PV>PRE_UUT1</PV>

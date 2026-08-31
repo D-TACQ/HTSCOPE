@@ -329,22 +329,47 @@ record(waveform, "$(HOST):$(UUT):STREAM:STATUS") {
 record(waveform, "$(HOST):$(UUT):STREAM:EVENTINDEX") {
         field(DTYP, "asynInt64ArrayIn")
         field(INP, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))EVENTINDEX")
-        field(PINI, "YES")
-        field(NELM, "64")
+        field(PINI, "NO")
+        field(NELM, "256")
         field(FTVL, "INT64")
         field(DESC, "byte number showing start of event")
         field(SCAN, "I/O Intr")
 }
 
+# saving events
+record(longout, "$(HOST):$(USER):$(UUT):SAVE_EVENT"){
+        field(DTYP, "asynInt32")
+        field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_EVENT")
+	field(DRVL, "0")
+	field(DRVH, "255")
+	field(VAL,  "0")
+	field(PINI, "NO")
+}
 
+record(longin, "$(HOST):$(USER):$(UUT):N_EVENTS_DETECTED"){
+        field(DTYP, "asynInt32")
+        field(INP, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))N_EVENTS_DETECTED")
+	field(PINI, "YES")
+        field(SCAN, "I/O Intr")
+}
+
+record(lso, "$(HOST):$(USER):$(UUT):SAVE_PATH"){
+        field(DTYP, "asynOctetWrite")
+        field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))SAVE_PATH")
+        field(SIZV, "512")
+        field(PINI, "YES")
+        info(asyn:READBACK, "1")
+}
+
+# selecting samples pre and post event
 record(int64out, "$(HOST):$(USER):$(UUT):PRE"){
 	field(DTYP, "asynInt64")
 	field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))PRE")
 	field(DRVL, "0")
-	field(DRVH, "3200000000")
+	field(DRVH, "20000000")
 	field(VAL,  "0")
 	field(PINI, "YES")
-        field(DESC, "bytes before event to display/save")
+        field(DESC, "samples before event to display/save")
         info(asyn:READBACK, "1")
 }
 
@@ -352,9 +377,9 @@ record(int64out, "$(HOST):$(USER):$(UUT):POST"){
 	field(DTYP, "asynInt64")
 	field(OUT, "@asyn($(HOST):$(USER):$(UUT),0,$(TIMEOUT))POST")
 	field(DRVL, "0")
-	field(DRVH, "3200000000")
+	field(DRVH, "20000000")
 	field(VAL,  "0")
 	field(PINI, "YES")
-        field(DESC, "bytes after event to display/save")
+        field(DESC, "samples after event to display/save")
         info(asyn:READBACK, "1")
 }
