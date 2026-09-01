@@ -15,7 +15,6 @@ save_event_uut1_pv = pvs[1]
 save_all_events_button_stored_pv = pvs[3]
 
 event_uut1_array = PVUtil.getLongArray(event_index_uut1_pv)
-event_uut2_array = PVUtil.getLongArray(event_index_uut2_pv)
 
 
 if PVUtil.getLong(save_all_events_button_stored_pv) == 0:
