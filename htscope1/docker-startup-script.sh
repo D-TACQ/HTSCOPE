@@ -6,8 +6,9 @@ echo +running docker startup script
 echo ++ running python script to generate st.cmd
 echo +++ creating 32 int16 channels and 8 int16 spad channels
 echo +++ master is $MASTER and slave is $SLAVE
+echo +++ hostname is $HN
 
-export UUTS="${MASTER} ${SLAVE}"; ./scripts/make_htscope_st.cmd.py \
+export UUTS="${MASTER_HN} ${SLAVE_HN}"; ./scripts/make_htscope_st.cmd.py \
     --nchan=40 \
     --data32=0 \
     --ndata=1000000 \
