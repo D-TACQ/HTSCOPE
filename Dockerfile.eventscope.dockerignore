@@ -1,0 +1,9 @@
+.git
+
+**
+!make-common-libs
+!DRIVERS-OOK
+!ACQ400DRV
+!ACQ400COMMON
+!HTSCOPE
+!EPICS7

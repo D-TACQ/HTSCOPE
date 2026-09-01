@@ -1,0 +1,161 @@
+# STAGE 1: EPICS & IOC COMPILER
+FROM rockylinux:9 AS builder
+
+RUN dnf update -y && \
+    dnf install --enablerepo=crb -y \
+    epel-release && \
+    dnf update -y && \
+    dnf install --enablerepo=crb -y \
+    gcc \
+    gcc-c++ \
+    git \
+    libevent-devel \
+    libtirpc-devel \
+    make \
+    perl \
+    readline-devel \
+    re2c \
+    rpcgen \
+    tar \
+    wget \
+    autoconf \
+    procServ \
+    && dnf clean all
+
+RUN dnf update -y && \
+    dnf groupinstall -y "Development Tools" && \
+    dnf install -y popt-devel
+
+#RUN git clone https://github.com/ralphlange/procServ.git && \
+#    cd procServ && \
+#    make && \
+#    ./configure --disable-doc && \
+#    make
+
+# Bring in existing EPICS7 repository (base + modules)
+COPY EPICS7 /workspace/EPICS7
+
+# Recreate the symlinks EPICS modules expect
+RUN mkdir -p /usr/local/epics && \
+    ln -s /workspace/EPICS7/acq400_epics_base /usr/local/epics/base && \
+    ln -s /workspace/EPICS7/modules /usr/local/epics/modules
+
+# Disable arm cross-compilation globally so it only builds for x86_64
+RUN find /workspace/EPICS7 -name "CONFIG_SITE*" -exec sed -i 's/^CROSS_COMPILER_TARGET_ARCHS/#CROSS_COMPILER_TARGET_ARCHS/g' {} +
+
+# Compile EPICS base natively
+WORKDIR /workspace/EPICS7/acq400_epics_base
+RUN make
+
+# Compile EPICS modules (asyn, streamdevice, pvxs, etc.) natively
+WORKDIR /workspace/EPICS7/modules/asyn
+RUN make -j$(nproc)
+
+WORKDIR /workspace/EPICS7/modules/seq
+RUN make -j$(nproc)
+
+WORKDIR /workspace/EPICS7/modules/StreamDevice
+RUN make -j$(nproc)
+
+WORKDIR /workspace/EPICS7/modules/recsync/client
+RUN sed -i '/^EPICS_BASE/d' configure/RELEASE && \
+    echo "EPICS_BASE=/workspace/EPICS7/acq400_epics_base" >> configure/RELEASE && \
+    make -j$(nproc)
+
+# Inject the ACQ400 headers (Needed for acq400_asyn_common.h)
+COPY ACQ400DRV /workspace/ACQ400DRV
+
+# Build the AFHBA404 cpp apps
+WORKDIR /
+RUN git clone https://github.com/D-TACQ/AFHBA404
+RUN cd AFHBA404 && make apps
+RUN cp AFHBA404/scripts/get-ident-all /bin
+
+# Build the IOC natively
+COPY HTSCOPE /workspace/HTSCOPE
+WORKDIR /workspace/HTSCOPE/htscope1
+
+# Extract only the headers, ignore the compiled .so libraries
+RUN mkdir -p include && \
+    find /workspace/ACQ400DRV -name '*.h' -exec cp -a {} include/ \;
+
+# Forcefully fix the paths in the ioc's RELEASE file
+RUN sed -i 's|$HOME/PROJECTS/ACQ400_ESW_TOP|/workspace|g' configure/RELEASE && \
+    sed -i '/^EPICS_BASE/d' configure/RELEASE && \
+    sed -i '/^RECSYNC/d' configure/RELEASE && \
+    sed -i '/^PVXS/d' configure/RELEASE && \
+    echo "EPICS_BASE=/workspace/EPICS7/acq400_epics_base" >> configure/RELEASE && \
+    echo "RECSYNC=/workspace/EPICS7/modules/recsync/client" >> configure/RELEASE && \
+    echo "PVXS=/workspace/EPICS7/acq400_epics_base/modules/pvxs" >> configure/RELEASE && \
+    find /workspace/EPICS7 -name "pvxsIoc.dbd" -exec cp {} /workspace/EPICS7/acq400_epics_base/dbd/ \; && \
+    find /workspace/EPICS7 -name "softIocPVX.dbd" -exec cp {} /workspace/EPICS7/acq400_epics_base/dbd/ \; && \
+    make -j$(nproc)
+
+# STAGE 2: LIGHTWEIGHT RUNTIME
+FROM rockylinux/rockylinux:10-minimal AS runtime
+
+# Preemptively install runtime libraries for network/events
+RUN microdnf install -y \
+    expect \
+    readline \
+    libstdc++ \
+    libevent \
+    libtirpc \
+    lsof \
+    git \
+    popt-devel \
+    python3 \
+    python3-pip \
+    nano \
+    curl \
+    && microdnf clean all
+
+RUN pip3 install --no-cache-dir pyepics
+
+RUN git clone https://github.com/D-TACQ/acq400_hapi
+RUN cd acq400_hapi && \
+    python -m pip install -e . && \
+    cd -
+
+# Extract the get-ident-all script
+COPY --from=builder /bin/get-ident-all /bin/get-ident-all
+# Extract the compiled C++ binaries from AFHBA404
+COPY --from=builder /AFHBA404 /opt/AFHBA404
+
+COPY --from=builder /usr/bin/procServ /usr/bin/procServ
+COPY --from=builder /usr/lib64/libtelnet.so.2 /usr/lib64/libtelnet.so.2
+# Extract EPICS base libraries
+COPY --from=builder /workspace/EPICS7/acq400_epics_base/lib/linux-x86_64 /epics/base/lib/linux-x86_64
+
+# Extract all compiled EPICS module libraries
+COPY --from=builder /workspace/EPICS7/modules/asyn/lib/linux-x86_64 /epics/modules/asyn/lib
+COPY --from=builder /workspace/EPICS7/modules/StreamDevice/lib/linux-x86_64 /epics/modules/StreamDevice/lib
+COPY --from=builder /workspace/EPICS7/modules/seq/lib/linux-x86_64 /epics/modules/seq/lib
+COPY --from=builder /workspace/EPICS7/modules/recsync/client/lib/linux-x86_64 /epics/modules/recsync/lib
+
+# Extract the compiled IOC executable and boot folder
+COPY --from=builder /workspace/HTSCOPE/htscope1 /opt/htscope1
+
+# Extract EPICS Base libraries AND binaries (for caget, caput)
+COPY --from=builder /workspace/EPICS7/acq400_epics_base/lib/linux-x86_64 /epics/base/lib/linux-x86_64
+COPY --from=builder /workspace/EPICS7/acq400_epics_base/bin/linux-x86_64 /epics/base/bin/linux-x86_64
+
+# Configure paths so the IOC can find all the injected .so files!
+#ENV LD_LIBRARY_PATH="/epics/base/lib/linux-x86_64:/epics/modules/asyn/lib:/epics/modules/StreamDevice/lib:/epics/modules/seq/lib:/epics/modules/recsync/lib:/opt/htscope1/lib/linux-x86_64"
+ENV LD_LIBRARY_PATH="/epics/base/lib/linux-x86_64:/epics/modules/asyn/lib:/epics/modules/StreamDevice/lib:/epics/modules/seq/lib:/epics/modules/recsync/lib:/epics/modules/pvxs/lib:/opt/htscope1/lib/linux-x86_64"
+ENV PATH="/epics/base/bin/linux-x86_64:/epics/modules/pvxs/bin:/opt/AFHBA404/STREAM:/opt/htscope1:${PATH}"
+
+WORKDIR /opt/htscope1/iocBoot/iochtscope1
+RUN chmod +x st.cmd
+
+# Patch the build-time paths to point to the runtime directory
+RUN sed -i 's|/workspace/HTSCOPE/htscope1|/opt/htscope1|g' envPaths && \
+    sed -i 's|/workspace/HTSCOPE/htscope1|/opt/htscope1|g' st.cmd && \
+    chmod +x st.cmd
+
+# 
+
+WORKDIR /opt/htscope1
+
+
+CMD ["bash", "docker-startup-script.sh"]
