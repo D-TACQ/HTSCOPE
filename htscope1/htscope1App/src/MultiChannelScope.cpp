@@ -596,7 +596,7 @@ bool MultiChannelScope::save_clipped_event(int event_array_index) {
 	std::error_code ec;
         std::filesystem::create_directories(full_dir_path, ec);
 	if (ec) {
-		printf("Failed to create directory structure %s: %s\n", full_dir_path, ec);
+		printf("Failed to create directory structure %s: %s\n", full_dir_path.c_str(), ec);
 		return false;
 	}
 	else {
