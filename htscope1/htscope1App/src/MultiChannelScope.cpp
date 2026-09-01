@@ -219,7 +219,7 @@ bool MultiChannelScope::mmap_uut_data() {
 	current_event_count = 0;
 	memset(EVENTINDEX, 0, MAX_NUM_EVENTS * sizeof(epicsInt64));
 
-	sprintf(datafile, "%s/%s", getenv("HOME"), portName);
+	sprintf(datafile, "%s/%s", getenv("HOME") ? getenv("HOME") : "/tmp", portName);
 
 	fp = fopen(datafile, "r");
 	if (fp == 0){
