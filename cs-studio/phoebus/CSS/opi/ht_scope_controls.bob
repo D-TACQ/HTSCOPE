@@ -2,7 +2,7 @@
 <display version="2.0.0">
   <name>ht_scope_controls</name>
   <width>1641</width>
-  <height>1393</height>
+  <height>1340</height>
   <widget type="textupdate" version="2.0.0">
     <name>save_all_events_button_stored</name>
     <pv_name>loc://save_all_events_button_stored&lt;VDouble&gt;</pv_name>
@@ -58,6 +58,7 @@
     <y>81</y>
     <width>181</width>
     <height>70</height>
+    <visible>false</visible>
     <transparent>true</transparent>
     <widget type="action_button" version="3.0.0">
       <name>open_plot_button</name>
@@ -80,6 +81,7 @@
     <y>143</y>
     <width>328</width>
     <height>311</height>
+    <visible>false</visible>
     <transparent>true</transparent>
     <widget type="group" version="3.0.0">
       <name>Trace_1</name>
@@ -840,6 +842,7 @@
     <y>146</y>
     <width>510</width>
     <height>129</height>
+    <visible>false</visible>
     <transparent>true</transparent>
     <widget type="group" version="3.0.0">
       <name>ControlButtons</name>
@@ -1517,7 +1520,7 @@
     </widget>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_2</name>
+    <name>events_uut1</name>
     <x>335</x>
     <y>640</y>
     <width>1</width>
@@ -1806,8 +1809,8 @@
     </macros>
     <x>33</x>
     <y>646</y>
-    <width>313</width>
-    <height>30</height>
+    <width>323</width>
+    <height>34</height>
     <style>3</style>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
@@ -1994,7 +1997,7 @@
     <x>28</x>
     <y>474</y>
     <width>1600</width>
-    <height>180</height>
+    <height>172</height>
     <style>3</style>
     <transparent>true</transparent>
     <widget type="textupdate" version="2.0.0">
@@ -2003,7 +2006,7 @@
       <x>81</x>
       <y>1</y>
       <width>1500</width>
-      <height>180</height>
+      <height>160</height>
       <background_color>
         <color name="Header_ForeGround" red="255" green="255" blue="255">
         </color>
