@@ -1572,7 +1572,7 @@
         <script file="../scripts/event_selector.py">
           <pv_name>loc://PING</pv_name>
           <pv_name trigger="false">loc://PONG</pv_name>
-          <pv_name trigger="false">scarp:acq2106_133:STREAM:EVENTINDEX</pv_name>
+          <pv_name trigger="false">$(HOST):$(UUT_2):STREAM:EVENTINDEX</pv_name>
           <pv_name trigger="false">loc://selected_event</pv_name>
         </script>
       </scripts>
@@ -2111,7 +2111,7 @@
         <script file="../scripts/event_selector.py">
           <pv_name>loc://PING</pv_name>
           <pv_name trigger="false">loc://PONG</pv_name>
-          <pv_name trigger="false">scarp:acq2106_133:STREAM:EVENTINDEX</pv_name>
+          <pv_name trigger="false">$(HOST):$(UUT_1):STREAM:EVENTINDEX</pv_name>
           <pv_name trigger="false">loc://selected_event</pv_name>
         </script>
       </scripts>
