@@ -32,7 +32,8 @@
 #define PS_N_EVENTS_DETECTED "N_EVENTS_DETECTED"
 #define PS_SAVE_PATH "SAVE_PATH"                /* asynOctet */
 
-#define MAX_NUM_EVENTS 256
+#define MAX_NUM_EVENTS 256   /* arbitrary number for size of array events will be stored in on EPICS */
+#define ES_SAMPLE_OFFSET 4  /* Location of first event signature magic bytes in a sample (offset by 4 bytes on current module of interest ACQ480) */
 
 typedef epicsFloat64 CTYPE;
 typedef epicsFloat64 TBTYPE;

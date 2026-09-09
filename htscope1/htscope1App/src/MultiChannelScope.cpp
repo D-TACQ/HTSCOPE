@@ -446,7 +446,7 @@ void MultiChannelScope::process_data() {
             const uint32_t* current_val = reinterpret_cast<const uint32_t*>(buffer.data() + buffer_i);
             
             if (*current_val == MAGIC_NUM) {
-                EVENTINDEX[current_event_count] = (epicsInt64)(aligned_start + buffer_i);
+                EVENTINDEX[current_event_count] = (epicsInt64)(aligned_start + buffer_i - ES_SAMPLE_OFFSET);
                 current_event_count++;
                 found_new_events = true;
                 n_events_detected += 1;
